@@ -21,20 +21,52 @@ export class UserController {
         }
     }
 
-    static async login (req: Request, res: Response) {
+    static async logIn (req: Request, res: Response) {
         try {
             const {email, password } = req.body
 
-            const token = userService.login({email, password})
+              const {sessionToken, existingUser} = await userService.logIn({email, password})
 
-            res.cookie('sessionToken', token, {
+            res.cookie('sessionToken', sessionToken, {
                 httpOnly:true,
                 sameSite:'lax',
             })
 
-            return res.json()
+            return res.json(existingUser)
         } catch (error) {
             console.error('LOGIN ERROR',error)
+        }
+    }
+    static async logOut (req: Request, res: Response) {
+        try {
+            const token = req.cookies.sessionToken
+
+                res.clearCookie('sessionToken', {
+                    httpOnly:true,
+                    sameSite:'lax',
+                    path: '/'
+                })
+
+            return res.status(200).json({ message: 'Logged out' })
+        } catch (error) {
+            console.error('LOGOUT ERROR',error)
+            return res.status(500).json({ message: 'Logout failed' })
+        }
+    }
+
+     static async updateProfile (req, res: Response) {
+        try {
+            const useData = req.body
+            const userId = req.user?.id
+            
+
+            const user = userService.updateProfile(useData, userId)
+
+
+            return res.json(user)
+
+        } catch (error) {
+            console.error('REGISTRATION ERROR',error)
         }
     }
     // static async auth (req: Request, res: Response) {

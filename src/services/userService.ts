@@ -1,7 +1,8 @@
 import {compare, hash, hashSync} from 'bcrypt'
 import jwt from 'jsonwebtoken'
+import { prisma } from '../../prisma/prisma-client'
 
-import { prisma } from "../../prisma/prisma-client"
+
 
 
 
@@ -13,6 +14,10 @@ interface LoginUserInput {
 interface CreateUserInput extends LoginUserInput {
   name:      string  
   phone?:    string
+}
+
+interface UpdateUserInput extends CreateUserInput {
+  image: string
 }
 
  class UserService {
@@ -44,7 +49,7 @@ interface CreateUserInput extends LoginUserInput {
 
     }
 
-     async login (userData: LoginUserInput) {
+     async logIn (userData: LoginUserInput) {
 
         const {email, password} = userData
 
@@ -66,10 +71,31 @@ interface CreateUserInput extends LoginUserInput {
 
         const sessionToken = jwt.sign({id: existingUser.id}, process.env.JWT_SECRET as string, {expiresIn:'7d'})
 
-        return sessionToken
+        return {sessionToken, existingUser}
 
     }
 
+     async updateProfile (userData: UpdateUserInput, userId: number) {
+
+
+
+        const newUserData = await prisma.user.update({
+          where: {
+              id: Number(userId)
+          },
+          data: {
+            email: userData.email,
+            name: userData.name,
+            image: userData.image,
+            phone: userData.phone,
+            password: hashSync(userData.password, 10)
+          }
+        })
+
+        return newUserData
+
+    }
+   
     //  static async auth (req) {
 
     //     const sessionToken  = req.cookies.get('sessionToken')
