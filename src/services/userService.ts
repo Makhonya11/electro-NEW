@@ -1,6 +1,8 @@
 import {compare, hash, hashSync} from 'bcrypt'
 import jwt from 'jsonwebtoken'
 import { prisma } from '../../prisma/prisma-client'
+import path from 'path'
+import {v4 as uuid} from 'uuid'
 
 
 
@@ -23,7 +25,7 @@ interface UpdateUserInput extends CreateUserInput {
  class UserService {
      async registration (userData: CreateUserInput) {
 
-        const {email, password, name, phone} = userData
+        const {email, password} = userData
 
         const isExisting = await prisma.user.findFirst({
           where: {
@@ -37,8 +39,7 @@ interface UpdateUserInput extends CreateUserInput {
 
         const newUser = await prisma.user.create({
           data: {
-            email,
-            name,
+            ...userData,
             password: hashSync(password, 10)
           }
         })
@@ -75,37 +76,36 @@ interface UpdateUserInput extends CreateUserInput {
 
     }
 
-     async updateProfile (userData: UpdateUserInput, userId: number) {
+     async updateProfile (userData: UpdateUserInput, userId: number, avatar: string) {
 
-
+      if (userData.password) {
+         userData.password = hashSync(userData.password, 10)
+      }
 
         const newUserData = await prisma.user.update({
           where: {
               id: Number(userId)
           },
-          data: {
-            email: userData.email,
-            name: userData.name,
-            image: userData.image,
-            phone: userData.phone,
-            password: hashSync(userData.password, 10)
-          }
+          data: userData
         })
-
         return newUserData
+    }
 
+    async getProfile(userId: string) {
+      const user = await prisma.user.findUnique({
+        where: {
+          id: Number(userId)
+        }
+      }) 
+
+      if (!user) {
+        throw new Error ('Необходима авторизация')
+      }
+
+      return user
     }
    
-    //  static async auth (req) {
-
-    //     const sessionToken  = req.cookies.get('sessionToken')
-
-    //   if (!sessionToken) {
-    //     throw new Error ('Необходимо пройти авторизацию')
-    //   }
-
-    //   return sessionToken
-    // }
+  
 }
 
 export const userService = new UserService()

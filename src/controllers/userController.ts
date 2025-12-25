@@ -1,13 +1,14 @@
 import { Request, Response } from "express";
 import { userService } from "../services/userService";
+import multer from 'multer'
 
 
 export class UserController {
     static async registration (req: Request, res: Response) {
         try {
-            const {email, password, name, phone } = req.body
+            const userData = req.body
 
-            const user = userService.registration({email, password, name, phone})
+            const user = userService.registration(userData)
 
             res.cookie('sessionToken', user, {
                 httpOnly:true,
@@ -56,19 +57,34 @@ export class UserController {
 
      static async updateProfile (req, res: Response) {
         try {
-            const useData = req.body
+            const userData = req.body
             const userId = req.user?.id
+            const avatar = req.file.filename
+            console.log(req.body.image)
             
-
-            const user = userService.updateProfile(useData, userId)
-
+            const user = await userService.updateProfile(userData, userId, avatar)
 
             return res.json(user)
 
         } catch (error) {
-            console.error('REGISTRATION ERROR',error)
+            console.error('UPDATEPROFILE ERROR',error)
         }
     }
+
+     static async getProfile (req, res: Response) {
+        try {
+            const userId = req.user?.id
+            
+            const user = await userService.getProfile( userId)
+
+            return res.json(user)
+
+        } catch (error) {
+            console.error('GETPROFILE ERROR',error)
+        }
+    }
+
+
     // static async auth (req: Request, res: Response) {
     //     try {
     //         const user = UserService.auth(req)

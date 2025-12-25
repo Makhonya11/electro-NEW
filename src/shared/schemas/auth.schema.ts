@@ -12,3 +12,9 @@ export const registerSchema = loginSchema.extend({
   'Invalid phone number'
   ).optional()
 })
+
+export const updateProfileSchema = registerSchema.extend({
+  image: z.string().optional()
+})
+
+

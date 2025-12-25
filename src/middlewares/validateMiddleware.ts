@@ -3,7 +3,7 @@ import { ZodSchema } from "zod";
 
 export const validateMiddleware = (schema: ZodSchema) => (req, res, next) => {
     try {
-        const result = schema.parse(req.body)
+        const result = schema.safeParse(req.body)
         req.body = result
         next()
     } catch (error) {
