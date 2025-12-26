@@ -84,15 +84,44 @@ export class UserController {
         }
     }
 
+     static async getOrders (req, res: Response) {
+        try {
+            const userId = req.user?.id
+            
+            const orders = await userService.getOrders( userId)
 
-    // static async auth (req: Request, res: Response) {
-    //     try {
-    //         const user = UserService.auth(req)
-    //         return res.json(user)
-    //     } catch (error) {
-    //         console.error('Auth ERROR',error)
-    //     }
-    // }
+            return res.json(orders)
+
+        } catch (error) {
+            console.error('GETPROFILE ERROR',error)
+        }
+    }
+
+     static async getFavorites (req, res: Response) {
+        try {
+            const userId = req.user?.id
+            
+            const orders = await userService.getFavorites(userId)
+
+            return res.json(orders)
+
+        } catch (error) {
+            console.error('GETPROFILE ERROR',error)
+        }
+    }
+
+     static async addFavorite (req, res: Response) {
+        try {
+            const userId = req.user?.id
+            
+            const orders = await userService.getFavorites(userId)
+
+            return res.json(orders)
+
+        } catch (error) {
+            console.error('GETPROFILE ERROR',error)
+        }
+    }
 
 }
 

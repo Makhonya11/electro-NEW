@@ -104,6 +104,68 @@ interface UpdateUserInput extends CreateUserInput {
 
       return user
     }
+
+    async getOrders(userId: string) {
+      const orders = await prisma.order.findMany({
+        where: {
+          userId: Number(userId)
+        }
+      }) 
+
+      return orders
+    }
+
+// ДОРАБОТАТЬ ЭТОТ МЕТОД ПРОВЕРИ СУЩНОСТЬ В ПРИЗМЕ
+    async addToCart(userId: string, productId: string, cartToken: string) {
+      
+      const cart = await prisma.cart.findFirst ({
+        where: {
+           // userId: Number(userId),
+            token: cartToken
+
+        }
+      })
+
+      if (!cart) {
+        const newCart = await prisma.cart.create({
+          data: {
+            token: cartToken
+          }
+        })
+      }
+
+      const newCartItem = await prisma.cartItem.create({
+        where: {
+            cartId: cart?.id as number
+        },
+        data: {
+          cartId: cart?.id as number,
+          productId: Number(productId)
+        }
+      }) 
+
+      return cart
+    }
+
+    async getFavorites(userId: string) {
+      const favorites = await prisma.favorite.findMany({
+        where: {
+          userId: Number(userId)
+        }
+      }) 
+      return favorites
+    }
+   
+    async addToFavorites(userId: string, productId: string) {
+      const favorite = await prisma.favorite.create({
+        data: {
+          userId: Number(userId),
+          productId: Number(productId)
+        }
+      }) 
+
+      return favorite
+    }
    
   
 }
