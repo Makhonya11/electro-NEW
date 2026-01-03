@@ -1,24 +1,38 @@
 import { Request, Response } from "express";
 import { userService } from "../services/userService";
-import multer from 'multer'
+import { productService } from "../services/productService";
 
+export class ProductController {
+    static async getCategories (req: Request, res: Response) {
+        try {
 
-export class UserController {
-    static async registration (req: Request, res: Response) {
+            const categories = productService.getCategories()
+            return res.json(categories)
+
+        } catch (error) {
+            console.error('CATALOG ERROR',error)
+        }
+    }
+    static async getCategoryProducts (req: Request, res: Response) {
+        try {
+            const id = req.query.
+
+            const categories = productService.getCategories()
+            return res.json(categories)
+
+        } catch (error) {
+            console.error('CATALOG ERROR',error)
+        }
+    }
+    static async getCategories (req: Request, res: Response) {
         try {
             const userData = req.body
 
-            const user = userService.registration(userData)
-
-            res.cookie('sessionToken', user, {
-                httpOnly:true,
-                sameSite:'lax',
-            })
-
-            return res.json()
+            const categories = productService.getCategories()
+            return res.json(categories)
 
         } catch (error) {
-            console.error('REGISTRATION ERROR',error)
+            console.error('CATALOG ERROR',error)
         }
     }
 }
