@@ -115,37 +115,7 @@ interface UpdateUserInput extends CreateUserInput {
       return orders
     }
 
-// ДОРАБОТАТЬ ЭТОТ МЕТОД ПРОВЕРИ СУЩНОСТЬ В ПРИЗМЕ
-    async addToCart(userId: string, productId: string, cartToken: string) {
-      
-      const cart = await prisma.cart.findFirst ({
-        where: {
-           // userId: Number(userId),
-            token: cartToken
 
-        }
-      })
-
-      if (!cart) {
-        const newCart = await prisma.cart.create({
-          data: {
-            token: cartToken
-          }
-        })
-      }
-
-      const newCartItem = await prisma.cartItem.create({
-        where: {
-            cartId: cart?.id as number
-        },
-        data: {
-          cartId: cart?.id as number,
-          productId: Number(productId)
-        }
-      }) 
-
-      return cart
-    }
 
     async getFavorites(userId: string) {
       const favorites = await prisma.favorite.findMany({
@@ -156,15 +126,29 @@ interface UpdateUserInput extends CreateUserInput {
       return favorites
     }
    
-    async addToFavorites(userId: string, productId: string) {
-      const favorite = await prisma.favorite.create({
+    async toggleFavorite(userId: string, productId: string) {
+      const isFavorite = await prisma.favorite.findUnique({
+       where: {
+        userId,
+        productId
+       }
+      }) 
+
+      if (isFavorite) {
+        await prisma.favorite.delete({
+          where: {
+            id: isFavorite.id
+          }
+        })
+      } else {
+          await prisma.favorite.create({
         data: {
           userId: Number(userId),
           productId: Number(productId)
         }
-      }) 
+      })
+      }
 
-      return favorite
     }
    
   

@@ -14,7 +14,7 @@ router.post('/signin', validateMiddleware(loginSchema),   UserController.logIn)
 router.post('/logout', UserController.logOut)
 router.patch('/update', authMiddleware, uploadAvatarMiddleware,  UserController.updateProfile)
 router.get('/me', authMiddleware,  UserController.getProfile)
-router.get('/favorite', authMiddleware,  UserController.getFavorite)
+router.get('/favorite', authMiddleware,  UserController.getFavorites)
 router.get('/orders', authMiddleware,  UserController.getOrders)
 
 

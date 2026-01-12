@@ -101,27 +101,31 @@ export class UserController {
         try {
             const userId = req.user?.id
             
-            const orders = await userService.getFavorites(userId)
+            const favorites = await userService.getFavorites(userId)
 
-            return res.json(orders)
+            return res.json(favorites)
 
         } catch (error) {
-            console.error('GETPROFILE ERROR',error)
+            console.error('getFavorites ERROR',error)
         }
     }
 
-     static async addFavorite (req, res: Response) {
+     static async toggleFavorite (req:Request, res: Response) {
         try {
             const userId = req.user?.id
-            
-            const orders = await userService.getFavorites(userId)
 
-            return res.json(orders)
+            const productId = req.body.producrtId
+            
+            await userService.toggleFavorite(userId, productId)
+
 
         } catch (error) {
-            console.error('GETPROFILE ERROR',error)
+            console.error('toggleFavorite ERROR',error)
         }
     }
+   
+
+
 
 }
 
