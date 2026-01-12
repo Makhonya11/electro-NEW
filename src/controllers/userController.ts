@@ -6,25 +6,27 @@ import multer from 'multer'
 export class UserController {
     static async registration (req: Request, res: Response) {
         try {
-            const userData = req.body
+            const {data} = req.body
+            console.log(data)
 
-            const user = userService.registration(userData)
+            const user = await userService.registration(data)
 
             res.cookie('sessionToken', user, {
                 httpOnly:true,
                 sameSite:'lax',
             })
 
-            return res.json()
+            return res.json({message: "Пользователь успешно зарегистрирован"})
 
         } catch (error) {
             console.error('REGISTRATION ERROR',error)
+            return res.status(500).json({message: error})
         }
     }
 
     static async logIn (req: Request, res: Response) {
         try {
-            const {email, password } = req.body
+            const {email, password } = req.body.data
 
               const {sessionToken, existingUser} = await userService.logIn({email, password})
 
@@ -71,7 +73,7 @@ export class UserController {
         }
     }
 
-     static async getProfile (req, res: Response) {
+     static async getProfile (req: Request, res: Response) {
         try {
             const userId = req.user?.id
             
@@ -84,7 +86,7 @@ export class UserController {
         }
     }
 
-     static async getOrders (req, res: Response) {
+     static async getOrders (req: Request, res: Response) {
         try {
             const userId = req.user?.id
             
@@ -110,14 +112,31 @@ export class UserController {
         }
     }
 
-     static async toggleFavorite (req:Request, res: Response) {
+     static async addToFavorites (req, res: Response) {
         try {
             const userId = req.user?.id
 
-            const productId = req.body.producrtId
+            const productId = req.body.productId
+            console.log(productId)
             
             await userService.toggleFavorite(userId, productId)
 
+            return res.json()
+
+
+        } catch (error) {
+            console.error('toggleFavorite ERROR',error)
+        }
+    }
+     static async deleteFromFavorites (req, res: Response) {
+        try {
+            const userId = req.user?.id
+
+            const productId = req.body.productId
+            
+            await userService.toggleFavorite(userId, productId)
+
+            return res.json()
 
         } catch (error) {
             console.error('toggleFavorite ERROR',error)

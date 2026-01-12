@@ -23,11 +23,14 @@ interface UpdateUserInput extends CreateUserInput {
 }
 
  class UserService {
-     async registration (userData: CreateUserInput) {
+     async registration (data: CreateUserInput) {
+      console.log(data)
 
-        const {email, password} = userData
+        const {email, password} = data
 
-        const isExisting = await prisma.user.findFirst({
+        //console.log(email, password)
+
+        const isExisting = await prisma.user.findUnique({
           where: {
               email
           }
@@ -39,7 +42,7 @@ interface UpdateUserInput extends CreateUserInput {
 
         const newUser = await prisma.user.create({
           data: {
-            ...userData,
+            ...data,
             password: hashSync(password, 10)
           }
         })
@@ -53,12 +56,15 @@ interface UpdateUserInput extends CreateUserInput {
      async logIn (userData: LoginUserInput) {
 
         const {email, password} = userData
+        console.log(email)
 
-        const existingUser = await prisma.user.findFirst({
+        const existingUser = await prisma.user.findUnique({
           where: {
               email
           }
         })
+
+        console.log(existingUser)
 
         if (!existingUser) {
           throw new Error ('Пользователя с такой почтой не существует')
@@ -115,8 +121,6 @@ interface UpdateUserInput extends CreateUserInput {
       return orders
     }
 
-
-
     async getFavorites(userId: string) {
       const favorites = await prisma.favorite.findMany({
         where: {
@@ -129,10 +133,11 @@ interface UpdateUserInput extends CreateUserInput {
     async toggleFavorite(userId: string, productId: string) {
       const isFavorite = await prisma.favorite.findUnique({
        where: {
-        userId,
-        productId
+        userId_productId: {
+        userId: +userId,
+        productId: +productId
        }
-      }) 
+      }}) 
 
       if (isFavorite) {
         await prisma.favorite.delete({
@@ -148,10 +153,8 @@ interface UpdateUserInput extends CreateUserInput {
         }
       })
       }
-
     }
-   
-  
+    
 }
 
 export const userService = new UserService()

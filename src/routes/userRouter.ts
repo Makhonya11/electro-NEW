@@ -15,6 +15,8 @@ router.post('/logout', UserController.logOut)
 router.patch('/update', authMiddleware, uploadAvatarMiddleware,  UserController.updateProfile)
 router.get('/me', authMiddleware,  UserController.getProfile)
 router.get('/favorite', authMiddleware,  UserController.getFavorites)
+router.post('/favorite', authMiddleware,  UserController.addToFavorites)
+router.delete('/favorite', authMiddleware,  UserController.deleteFromFavorites)
 router.get('/orders', authMiddleware,  UserController.getOrders)
 
 

@@ -5,14 +5,14 @@ import { prisma } from "../../prisma/prisma-client";
 
 class ProductService {
     async getCategories () {
-        const categories = await prisma.categories.findMany({})
+        const categories = await prisma.category.findMany({})
         return categories
     }
 
     async getCategoryProducts (categoryId: string) {
         const products = await prisma.product.findMany({
             where: {
-                categoryid: Number(categoryId)
+                categoryId: Number(categoryId)
             }
         })
         return products
@@ -21,7 +21,7 @@ class ProductService {
     async getProduct (productid: string) {
         const product = await prisma.product.findFirst({
             where: {
-                productId: Number(productid)
+                id: Number(productid)
             }
         })
         return product

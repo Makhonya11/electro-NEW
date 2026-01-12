@@ -62,14 +62,17 @@ export class CartController {
             const cartToken = req.cookies.cartToken
 
             const productId = req.body.producrtId
+
+            const quantity = req.body.quantity
             
-            const cart = await cartService.updateCart( productId, cartToken)
+            const cart = await cartService.updateCart( productId, cartToken, quantity)
 
             return res.json(cart)
 
-
         } catch (error) {
-            console.error('toggleupdateCartFavorite ERROR',error)
+            console.error('updateCart ERROR',error)
         }
     }
 }
+
+ 

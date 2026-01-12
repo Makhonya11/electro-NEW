@@ -2,7 +2,7 @@ import { authMiddleware } from './../middlewares/authMiddleware';
 import { Router } from "express";
 import { UserController } from "../controllers/userController";
 import { validateMiddleware } from "../middlewares/validateMiddleware";
-import { loginSchema, registerSchema } from "../shared/schemas/auth.schema";
+import { CartController } from '../controllers/cartController';
 
 
 

@@ -6,7 +6,7 @@ class CartService {
 
         async getCart (cartToken: string) {
 
-                let cart = await prisma.cart.findFirst({
+                let cart = await prisma.cart.findUnique({
                     where: {
                         token: cartToken
                     }
@@ -42,7 +42,7 @@ class CartService {
             })
           }
     
-          const newCartItem = await prisma.cartItem.create({
+           await prisma.cartItem.create({
             data: {
               cartId: cart?.id as number,
               productId: Number(productId)
@@ -51,6 +51,7 @@ class CartService {
     
           return cart
         }
+
         async deleteFromCart( productId: string, cartToken: string) {
           
           let cart = await prisma.cart.findFirst ({
@@ -62,22 +63,36 @@ class CartService {
     
            await prisma.cartItem.delete({
             where: {
-              cartId: cart?.id as number,
-              productId: Number(productId)
+              cartId_productId: {
+                cartId: cart?.id as number,
+                productId: Number(productId)
+              }
             }
           }) 
     
           return cart
         }
 
-        async updateCart (productId: string, cartToken: string) {
+        async updateCart (productId: string, cartToken: string, quantity: string) {
              const cart = await prisma.cart.findFirst ({
             where: {
                 token: cartToken
             }
           })
 
+           await prisma.cartItem.update ({
+            where: {
+              cartId_productId: {
+                cartId: cart?.id as number,
+                productId: Number(productId)
+              }
+            },
+            data: {
+                quantity: +quantity
+            }
+          })
 
+          return cart
         }
 
 
