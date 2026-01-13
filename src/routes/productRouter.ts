@@ -4,10 +4,9 @@ import { ProductController } from "../controllers/productController";
 
 const router = new Router() 
 
-router.get('/catalog',  ProductController.getCategories)
-router.get(`/catalog/:categoryName`,  ProductController.getCategory)
-router.get(`/catalog/:categoryName/:productName`,  ProductController.getProduct)
-
-
+router.get('/', ProductController.getCategories)
+router.get(`/:categoryName`,  ProductController.getProductsByCategory)
+router.get(`/brand/:brandName`,  ProductController.getProductsByBrand)
+router.get(`/:categoryName/:productName`,  ProductController.getProduct)
 
 export default router

@@ -9,11 +9,10 @@ import { CartController } from '../controllers/cartController';
 
 const router = new Router() 
 
-
-router.get('/cart', authMiddleware,  CartController.getCart)
-router.post('/cart/items', authMiddleware,  CartController.addToCart)
-router.delete('/cart/items', authMiddleware,  CartController.deleteFromCart)
-router.patch('/cart/items', authMiddleware,  CartController.updateCart)
+router.get('/', authMiddleware,  CartController.getCart)
+router.post('/', authMiddleware,  CartController.addToCart)
+router.delete('/', authMiddleware,  CartController.deleteFromCart)
+router.patch('/', authMiddleware,  CartController.updateCart)
 
 
 

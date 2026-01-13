@@ -9,7 +9,7 @@ class ProductService {
         return categories
     }
 
-    async getCategoryProducts (categoryId: string) {
+    async getProductsByCategory (categoryId: string) {
         const products = await prisma.product.findMany({
             where: {
                 categoryId: Number(categoryId)
@@ -18,8 +18,17 @@ class ProductService {
         return products
     }
 
+    async getProductsByBrand (brandId: string) {
+        const products = await prisma.product.findMany({
+            where: {
+                brandId: Number(brandId)
+            }
+        })
+        return products
+    }
+
     async getProduct (productid: string) {
-        const product = await prisma.product.findFirst({
+        const product = await prisma.product.findUnique({
             where: {
                 id: Number(productid)
             }

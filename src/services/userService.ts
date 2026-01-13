@@ -125,6 +125,9 @@ interface UpdateUserInput extends CreateUserInput {
       const favorites = await prisma.favorite.findMany({
         where: {
           userId: Number(userId)
+        },
+        include: {
+          product:true
         }
       }) 
       return favorites

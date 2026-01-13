@@ -10,9 +10,17 @@ export class CartController {
           //const userId = req.user?.id
           let cartToken = req.cookies.cartToken
 
-          if (!cartToken) cartToken = hashSync('cartToken', 10)
+          if (!cartToken) {
+             cartToken = hashSync('cartToken', 10)
+
+             res.cookie('cartToken', cartToken, {
+                  httpOnly:true,
+                  sameSite:'lax',
+              })
+          } 
 
           const cart = await cartService.getCart( cartToken)
+
 
           return res.json(cart)
 
@@ -25,9 +33,16 @@ export class CartController {
         try {
             //const userId = req.user?.id
             let cartToken = req.cookies.cartToken
-            if (!cartToken) cartToken = hashSync('cartToken', 10)
+            if (!cartToken) {
+                cartToken = hashSync('cartToken', 10)
 
-            const productId = req.body.producrtId
+                 res.cookie('cartToken', cartToken, {
+                  httpOnly:true,
+                  sameSite:'lax',
+              })
+            } 
+
+            const productId = req.body.productId
             
           const cart = await cartService.addToCart(productId, cartToken)
 
@@ -44,7 +59,7 @@ export class CartController {
             //const userId = req.user?.id
             const cartToken = req.cookies.cartToken
 
-            const productId = req.body.producrtId
+            const productId = req.body.productId
             
            const cart =  await cartService.deleteFromCart( productId, cartToken)
 
@@ -61,7 +76,7 @@ export class CartController {
             //const userId = req.user?.id
             const cartToken = req.cookies.cartToken
 
-            const productId = req.body.producrtId
+            const productId = req.body.productId
 
             const quantity = req.body.quantity
             

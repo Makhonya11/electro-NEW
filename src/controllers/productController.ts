@@ -4,44 +4,55 @@ import { userService } from "../services/userService";
 import { productService } from "../services/productService";
 
 export class ProductController {
+
     static async getCategories (req: Request, res: Response) {
         try {
 
-            const categories = productService.getCategories()
+            const categories = await productService.getCategories()
             return res.json(categories)
 
         } catch (error) {
             console.error('CATALOG ERROR',error)
         }
     }
-    static async getCategoryProducts (req: Request, res: Response) {
+
+    static async getProductsByCategory (req: Request, res: Response) {
         try {
-            const id = req.query.categoryId
+            const id = req.body.categoryId
+            const {categoryName} = req.params
+            console.log(categoryName)
 
-            const categories = productService.getCategories()
-            return res.json(categories)
+            const products = await productService.getProductsByCategory(id)
+            return res.json(products)
 
         } catch (error) {
             console.error('CATALOG ERROR',error)
         }
     }
-    static async getBrandProducts (req: Request, res: Response) {
+
+    static async getProductsByBrand (req: Request, res: Response) {
         try {
-            const userData = req.body
+            const id = req.body.brandId
+            const {brandName} = req.params
+            console.log(brandName)
 
-            const categories = productService.getCategories()
-            return res.json(categories)
+            const products = await productService.getProductsByBrand(id)
+            return res.json(products)
 
         } catch (error) {
             console.error('CATALOG ERROR',error)
         }
     }
+
     static async getProduct (req: Request, res: Response) {
         try {
-            const userData = req.body
+            const productId = req.body.productId
+            const {productName, categoryName} = req.params
 
-            const categories = productService.getCategories()
-            return res.json(categories)
+            console.log(productName, categoryName)
+
+            const product = await productService.getProduct(productId)
+            return res.json(product)
 
         } catch (error) {
             console.error('CATALOG ERROR',error)
