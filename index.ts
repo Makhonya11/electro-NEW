@@ -19,7 +19,6 @@ app.use('/api', router)
 app.use('/uploads', express.static('uploads'))
 
 
-
 const start = () => {
     try {
         app.listen(PORT, () => console.log(`use port - ${PORT}`))

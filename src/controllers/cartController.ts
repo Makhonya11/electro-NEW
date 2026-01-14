@@ -42,7 +42,7 @@ export class CartController {
               })
             } 
 
-            const productId = req.body.productId
+            const productId = +req.body.productId
             
           const cart = await cartService.addToCart(productId, cartToken)
 
@@ -59,7 +59,7 @@ export class CartController {
             //const userId = req.user?.id
             const cartToken = req.cookies.cartToken
 
-            const productId = req.body.productId
+            const productId = +req.body.productId
             
            const cart =  await cartService.deleteFromCart( productId, cartToken)
 
@@ -76,9 +76,9 @@ export class CartController {
             //const userId = req.user?.id
             const cartToken = req.cookies.cartToken
 
-            const productId = req.body.productId
+            const productId = +req.body.productId
 
-            const quantity = req.body.quantity
+            const quantity = +req.body.quantity
             
             const cart = await cartService.updateCart( productId, cartToken, quantity)
 

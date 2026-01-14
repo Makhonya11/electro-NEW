@@ -167,12 +167,12 @@ model Order {
   id              Int         @id @default(autoincrement())
   userId          Int
   status          OrderStatus @default(PENDING)
-  totalAmount     Int
-  deliveryPrice   Int
-  paymentType     String
-  deliveryAddress Json
+  totalAmount     Int         @default(0)
+  deliveryPrice   Int?        @default(0)
+  paymentType     String      @default("cash")
+  deliveryAddress String?     @default("Moscow")
 
-   userAddressId Int? 
+  userAddressId   Int? 
 
   user        User         @relation(fields: [userId], references: [id])
   items       OrderItem[]

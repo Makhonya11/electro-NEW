@@ -2,11 +2,12 @@ import { Product } from './../../node_modules/.prisma/client/index.d';
 import { hashSync } from "bcrypt"
 import { prisma } from "../../prisma/prisma-client"
 import { tr } from "zod/locales"
+import { calcCartTotal } from '../utils/calcCartTotal';
 
 
 class CartService {
 
-  async calcTotalAmount(id: number) {
+  async recalcCart(id: number) {
           const cart = await prisma.cart.findUnique({
             where: {
               id
@@ -20,9 +21,11 @@ class CartService {
             }
           })
 
-          const totalAmount = cart?.items.reduce((acc, item) => {
-            return (item.product.price *item.quantity) + acc
-          }, 0)
+          if (!cart) {
+            throw new Error('Корзина не найдена')
+          } 
+
+          const totalAmount = calcCartTotal(cart?.items)
 
           const updCart = await prisma.cart.update({
             where: {
@@ -74,11 +77,11 @@ class CartService {
                 })
               }
 
-                return this.calcTotalAmount(cart.id)
+                return this.recalcCart(cart.id)
         }
 
     // ДОРАБОТАТЬ ЭТОТ МЕТОД ПРОВЕРИ СУЩНОСТЬ В ПРИЗМЕ
-        async addToCart( productId: string, cartToken: string) {
+        async addToCart( productId: number, cartToken: string) {
           
           let cart = await prisma.cart.findUnique ({
             where: {
@@ -96,7 +99,7 @@ class CartService {
             })
           }
             
-            const cartItem = await prisma.cartItem.findUnique({
+            const findCartItem = await prisma.cartItem.findUnique({
               where: {
                 cartId_productId: {
                   cartId: cart.id,
@@ -105,9 +108,7 @@ class CartService {
               }
             })
 
-
-
-            if (cartItem) {
+            if (findCartItem) {
               await prisma.cartItem.update({
                 where: {
                    cartId_productId: {
@@ -117,23 +118,23 @@ class CartService {
                    }
                 },
                 data: {
-                  quantity: cartItem.quantity+1
+                  quantity: findCartItem.quantity+1
                 }
               })
             } else {
               await prisma.cartItem.create({
                data: {
-                 cartId: cart?.id as number,
+                 cartId: cart?.id,
                  productId: Number(productId)
                }
              }) 
 
             }
 
-          return this.calcTotalAmount(cart.id)
+          return this.recalcCart(cart.id)
         }
 
-        async deleteFromCart( productId: string, cartToken: string) {
+        async deleteFromCart( productId: number, cartToken: string) {
           
           const cart = await prisma.cart.findUnique ({
             where: {
@@ -149,16 +150,16 @@ class CartService {
            await prisma.cartItem.delete({
             where: {
               cartId_productId: {
-                cartId: cart?.id as number,
+                cartId: cart?.id,
                 productId: Number(productId)
               }
             }
           })
           
-           return this.calcTotalAmount(cart?.id as number)
+           return this.recalcCart(cart?.id)
         }
 
-        async updateCart (productId: string, cartToken: string, quantity: string) {
+        async updateCart (productId: number, cartToken: string, quantity: number) {
              const cart = await prisma.cart.findUnique ({
             where: {
                 token: cartToken
@@ -172,7 +173,7 @@ class CartService {
            await prisma.cartItem.update ({
             where: {
               cartId_productId: {
-                cartId: cart?.id as number,
+                cartId: cart?.id,
                 productId: Number(productId)
               }
             },
@@ -181,13 +182,9 @@ class CartService {
             }
           })
 
-          return this.calcTotalAmount(cart?.id as number)
+          return this.recalcCart(cart?.id)
         }
-
-       
-
-
-    
+  
 }
 
 export const cartService = new CartService ()

@@ -82,7 +82,7 @@ interface UpdateUserInput extends CreateUserInput {
 
     }
 
-     async updateProfile (userData: UpdateUserInput, userId: number, avatar: string) {
+     async updateProfile (userData: UpdateUserInput, userId: number, image: string) {
 
       if (userData.password) {
          userData.password = hashSync(userData.password, 10)
@@ -92,7 +92,10 @@ interface UpdateUserInput extends CreateUserInput {
           where: {
               id: Number(userId)
           },
-          data: userData
+          data: {
+            ...userData, 
+            image
+          }
         })
         return newUserData
     }

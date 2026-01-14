@@ -61,10 +61,10 @@ export class UserController {
         try {
             const userData = req.body
             const userId = req.user?.id
-            const avatar = req.file.filename
-            console.log(req.body.image)
+            const image = req.file.filename
+            console.log(req.file)
             
-            const user = await userService.updateProfile(userData, userId, avatar)
+            const user = await userService.updateProfile(userData, userId, image)
 
             return res.json(user)
 

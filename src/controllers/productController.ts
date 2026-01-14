@@ -12,7 +12,7 @@ export class ProductController {
             return res.json(categories)
 
         } catch (error) {
-            console.error('CATALOG ERROR',error)
+            console.error('getCategories ERROR',error)
         }
     }
 
@@ -26,7 +26,7 @@ export class ProductController {
             return res.json(products)
 
         } catch (error) {
-            console.error('CATALOG ERROR',error)
+            console.error('getProductsByCategory ERROR',error)
         }
     }
 
@@ -40,7 +40,7 @@ export class ProductController {
             return res.json(products)
 
         } catch (error) {
-            console.error('CATALOG ERROR',error)
+            console.error('getProductsByBrand ERROR',error)
         }
     }
 
@@ -55,7 +55,7 @@ export class ProductController {
             return res.json(product)
 
         } catch (error) {
-            console.error('CATALOG ERROR',error)
+            console.error('getProduct ERROR',error)
         }
     }
 }

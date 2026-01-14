@@ -11,7 +11,6 @@ const storage = multer.diskStorage({
   },
 })
 
-
  export const uploadAvatarMiddleware = multer({
                     storage,
                     limits: {
