@@ -1,7 +1,5 @@
 import { Request, Response } from "express";
 import { userService } from "../services/userService";
-import multer from 'multer'
-
 
 export class UserController {
     static async registration (req: Request, res: Response) {
@@ -9,14 +7,14 @@ export class UserController {
             const {data} = req.body
             console.log(data)
 
-            const user = await userService.registration(data)
+            const {user, sessionToken} = await userService.registration(data)
 
-            res.cookie('sessionToken', user, {
+            res.cookie('sessionToken', sessionToken, {
                 httpOnly:true,
                 sameSite:'lax',
             })
 
-            return res.json({message: "Пользователь успешно зарегистрирован"})
+            return res.json(user)
 
         } catch (error) {
             console.error('REGISTRATION ERROR',error)
@@ -28,14 +26,14 @@ export class UserController {
         try {
             const {email, password } = req.body.data
 
-              const {sessionToken, existingUser} = await userService.logIn({email, password})
+              const {sessionToken, user} = await userService.logIn({email, password})
 
             res.cookie('sessionToken', sessionToken, {
                 httpOnly:true,
                 sameSite:'lax',
             })
 
-            return res.json(existingUser)
+            return res.json(user)
         } catch (error) {
             console.error('LOGIN ERROR',error)
         }

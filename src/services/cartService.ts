@@ -80,7 +80,6 @@ class CartService {
                 return this.recalcCart(cart.id)
         }
 
-    // ДОРАБОТАТЬ ЭТОТ МЕТОД ПРОВЕРИ СУЩНОСТЬ В ПРИЗМЕ
         async addToCart( productId: number, cartToken: string) {
           
           let cart = await prisma.cart.findUnique ({

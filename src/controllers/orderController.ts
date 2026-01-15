@@ -19,14 +19,17 @@ export class OrderController {
       static async getOrderById (req:Request, res: Response) {
         try {
 
-            //const userId = req.user?.id
-            const orderId = +req.params
+            const userId = req.user?.id
+            const id = +req.params.id
 
-            const order = await orderService.getOrderById(orderId)
+            const order = await orderService.getOrderById(id, userId)
 
             res.json(order)
 
-        } catch (error) {
+        } catch (error:any) {
+            //if (error.code === 'P2025') {
+                return res.status(404).json({ message: error.message })
+             //}
             console.error('getOrderById ERROR',error)
         }
     }
@@ -35,7 +38,8 @@ export class OrderController {
         try {
            
            const userId = +req.user?.id
-           const newOrder = await orderService.createOrder(userId)
+           const token = req.cookies.cartToken
+           const newOrder = await orderService.createOrder(userId, token)
            return res.json(newOrder)
 
         } catch (error) {
@@ -46,12 +50,16 @@ export class OrderController {
       static async cancel (req:Request, res: Response) {
         try {
 
-            const orderId = +req.params
-            const order = await orderService.getOrderById( orderId)
+            const userId = +req.user?.id
+            const orderId = +req.params.id
+            const order = await orderService.cancelOrder( orderId, userId)
 
             res.json(order)
 
-        } catch (error) {
+        } catch (error:any) {
+             if (error.code === 'P2025') {
+    return res.status(404).json({ message: 'Заказ не найден' })
+  }
             console.error('getOrderById ERROR',error)
         }
     }
@@ -60,14 +68,18 @@ export class OrderController {
         try {
 
             const userId = req.user?.id
-            const orderId = +req.params
-            const status = req.body
+            const orderId = +req.params.id
+            const status = req.body.status
+            console.log(status)
 
             const order = await orderService.updateStatus( orderId, status)
 
             res.json(order)
 
-        } catch (error) {
+        } catch (error:any) {
+             if (error.code === 'P2025') {
+                return res.status(404).json({ message: 'Заказ не найден' })
+             }
             console.error('getOrderById ERROR',error)
         }
     }

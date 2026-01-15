@@ -24,7 +24,6 @@ interface UpdateUserInput extends CreateUserInput {
 
  class UserService {
      async registration (data: CreateUserInput) {
-      console.log(data)
 
         const {email, password} = data
 
@@ -40,45 +39,44 @@ interface UpdateUserInput extends CreateUserInput {
           throw new Error ('Пользователь с такой почтой уже зарегистрирован')
         }
 
-        const newUser = await prisma.user.create({
+        const user = await prisma.user.create({
           data: {
             ...data,
             password: hashSync(password, 10)
           }
         })
 
-        const sessionToken = jwt.sign({id: newUser.id}, process.env.JWT_SECRET as string, {expiresIn:'7d'})
+        const sessionToken = jwt.sign({id: user.id}, process.env.JWT_SECRET as string, {expiresIn:'7d'})
 
-        return sessionToken
+        return {sessionToken, user}
 
     }
 
      async logIn (userData: LoginUserInput) {
 
         const {email, password} = userData
-        console.log(email)
 
-        const existingUser = await prisma.user.findUnique({
+        const user = await prisma.user.findUnique({
           where: {
               email
           }
         })
 
-        console.log(existingUser)
+        console.log(user)
 
-        if (!existingUser) {
+        if (!user) {
           throw new Error ('Пользователя с такой почтой не существует')
         }
 
-        const isMatchPassword = await compare(password, existingUser.password)
+        const isMatchPassword = await compare(password, user.password)
 
         if (!isMatchPassword) {
           throw new Error ('Указан неверный логин или пароль')
         }
 
-        const sessionToken = jwt.sign({id: existingUser.id}, process.env.JWT_SECRET as string, {expiresIn:'7d'})
+        const sessionToken = jwt.sign({id: user.id}, process.env.JWT_SECRET as string, {expiresIn:'7d'})
 
-        return {sessionToken, existingUser}
+        return {sessionToken, user}
 
     }
 
@@ -88,7 +86,7 @@ interface UpdateUserInput extends CreateUserInput {
          userData.password = hashSync(userData.password, 10)
       }
 
-        const newUserData = await prisma.user.update({
+        const updatedUser = await prisma.user.update({
           where: {
               id: Number(userId)
           },
@@ -97,7 +95,11 @@ interface UpdateUserInput extends CreateUserInput {
             image
           }
         })
-        return newUserData
+
+        if (!updatedUser) {
+          throw new Error ("Пользователь не найден")
+        }
+        return updatedUser
     }
 
     async getProfile(userId: string) {

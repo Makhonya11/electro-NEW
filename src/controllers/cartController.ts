@@ -42,7 +42,7 @@ export class CartController {
               })
             } 
 
-            const productId = +req.body.productId
+          const productId = +req.body.productId
             
           const cart = await cartService.addToCart(productId, cartToken)
 

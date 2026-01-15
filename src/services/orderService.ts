@@ -21,15 +21,15 @@ class OrderService {
             }
                 })
 
-
                 return orders
         }
 
-        async getOrderById (id: number) {
+        async getOrderById (id: number, userId: number) {
 
                 const order = await prisma.order.findUnique({
                     where: {
-                        id
+                        id,
+                        userId
                     },
                     include: {
               items: {
@@ -40,15 +40,18 @@ class OrderService {
             }
                 })
 
+                if (!order) {
+                  throw new Error ("Заказ не найден")
+                }
 
                 return order
         }
 
-        async createOrder (userId: number) {
+        async createOrder (userId: number, token: string) {
 
               const userCart = await prisma.cart.findUnique({
                 where: {
-                  userId
+                  token
                 },
                 include: {
                   items: {
@@ -62,7 +65,7 @@ class OrderService {
               const newOrder = await prisma.order.create({
                 data: {
                   userId,
-                  //totalAmount: userCart?.totalAmount ,
+                  totalAmount: userCart?.totalAmount ,
                 }
               })
 
@@ -74,6 +77,7 @@ class OrderService {
                   quantity: item.quantity
                 }
               })
+              console.log(orderItems)
               
               if (!orderItems) {
                 throw new Error ('ошибка создания заказа')
@@ -99,11 +103,12 @@ class OrderService {
                 return order
         }
 
-          async cancelOrder (id: number) {
+          async cancelOrder (id: number, userId: number) {
 
                 const order = await prisma.order.update({
                     where: {
-                        id
+                        id,
+                        userId
                     }, 
                     data: {
                       status: "CANCELED"
@@ -113,11 +118,12 @@ class OrderService {
                 return order
         }
 
-          async updateStatus (id: number, status: OrderStatus ) {
+          async updateStatus (id: number, status: OrderStatus, userId: number ) {
 
                 const order = await prisma.order.update({
                     where: {
-                        id
+                        id,
+                        userId
                     }, 
                     data: {
                       status

@@ -8,6 +8,6 @@ router.get('/', authMiddleware, OrderController.getOrders)
 router.get('/:id', authMiddleware, OrderController.getOrderById)
 router.post('/', authMiddleware, OrderController.create)
 router.patch('/:id/cancel', authMiddleware, OrderController.cancel)
-router.patch('/', authMiddleware, OrderController.updateStatus)
+router.patch('/:id', authMiddleware, OrderController.updateStatus)
 
 export default router
