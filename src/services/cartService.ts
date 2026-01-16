@@ -1,3 +1,4 @@
+import { Cart, CartItem } from '@prisma/client';
 import { Product } from './../../node_modules/.prisma/client/index.d';
 import { hashSync } from "bcrypt"
 import { prisma } from "../../prisma/prisma-client"
@@ -7,7 +8,7 @@ import { calcCartTotal } from '../utils/calcCartTotal';
 
 class CartService {
 
-  async recalcCart(id: number) {
+ private async recalcCart(id: number) {
           const cart = await prisma.cart.findUnique({
             where: {
               id
@@ -46,63 +47,125 @@ class CartService {
 
         }
 
-        async getCart (cartToken: string) {
+      private async getOrCreateUserCart ( userId: number) {
 
-                let cart = await prisma.cart.findUnique({
+             let userCart = await prisma.cart.findUnique({
+                    where: {
+                        userId: userId
+                    }
+                })
+
+                if (!userCart) {
+                  userCart = await prisma.cart.create({
+                    data: {
+                      userId
+                    }
+                  })
+                }
+
+                return userCart
+          } 
+        
+          
+        private  async getOrCreateGuestCart(cartToken: string) {
+
+            let guestCart = await prisma.cart.findUnique({
                     where: {
                         token: cartToken
-                    },
-                    include: {
-              items: {
-                include: {
-                  product:true
-                }
-              }
-            }
+                    }
                 })
 
-               //const token = hashSync('cartToken', 10)
-              if (!cart) {
-                    cart = await prisma.cart.create({
+                if (!guestCart) {
+                  guestCart = await prisma.cart.create({
                     data: {
-                        token: cartToken
-                    },
-                     include: {
-              items: {
-                include: {
-                  product:true
+                      token: cartToken
+                    }
+                  })
                 }
-              }
+
+                return guestCart
+          }
+            
+            private async mergeCarts(guestCart: Cart, userCart: Cart) {
+
+              if (guestCart.items?.length === 0) return
+
+               for (const item of guestCart.items) {
+                  const existingItem = await prisma.cartItem.findUnique({
+                    where:{
+                      cartId_productId: {
+                        cartId: userCart.id,
+                        productId: item.productId
+                      }
+                    }
+                  })
+
+                  if (existingItem) {
+                    await prisma.cartItem.update({
+                      where: {
+                        id: existingItem.cartId
+                      },
+                      data: {
+                        quantity: existingItem.quantity + item.quantity
+                      }
+                    })
+                  } else {
+                    await prisma.cartItem.create({
+                      data: {
+                        cartId: userCart.id,
+                        productId: item.productId,
+                        quantity: item.quantity
+                      }
+                    })
+                  }
+               }
+
+               await prisma.cart.delete({
+                where: {
+                  id: guestCart.id
+                }
+               })
+
+             
             }
-                })
+
+            async getCart (cartToken: string | undefined, userId: number | undefined) {
+              
+              let guestCart
+              let userCart
+              if(cartToken) {
+               guestCart =  await this.getOrCreateGuestCart(cartToken)
+              }
+              if (userId) {
+                userCart = await this.getOrCreateUserCart(userId)
               }
 
-                return this.recalcCart(cart.id)
-        }
-
-        async addToCart( productId: number, cartToken: string) {
-          
-          let cart = await prisma.cart.findUnique ({
-            where: {
-               // userId: Number(userId),
-                token: cartToken
-            }
-          })
-          
-          
-          if (!cart) {
-            cart = await prisma.cart.create({
-              data: {
-                token: cartToken
+              if (guestCart && userCart) {
+                await this.mergeCarts(guestCart, userCart)
+                return this.recalcCart(userCart.id)
               }
-            })
+
+              if( guestCart) return this.recalcCart(guestCart.id)
+              if( userCart) return this.recalcCart(userCart.id)
+              
+              throw new Error('Корзина не найдена')
+            }
+
+
+        async addToCart( productId: number, cartToken: string, userId: number) {
+          let cart
+
+          if (userId) {
+             cart = await this.getOrCreateUserCart(userId)
+          } else {
+            cart = await this.getOrCreateGuestCart(cartToken)
           }
             
             const findCartItem = await prisma.cartItem.findUnique({
               where: {
                 cartId_productId: {
                   cartId: cart.id,
-                  productId: +productId
+                  productId: productId
                 }
               }
             })
@@ -112,7 +175,7 @@ class CartService {
                 where: {
                    cartId_productId: {
                      cartId: cart.id,
-                     productId: +productId
+                     productId: productId
 
                    }
                 },
@@ -124,23 +187,28 @@ class CartService {
               await prisma.cartItem.create({
                data: {
                  cartId: cart?.id,
-                 productId: Number(productId)
+                 productId: productId
                }
              }) 
-
             }
 
           return this.recalcCart(cart.id)
         }
 
-        async deleteFromCart( productId: number, cartToken: string) {
+        async deleteFromCart( productId: number, cartToken: string, userId: number) {
           
-          const cart = await prisma.cart.findUnique ({
-            where: {
-               // userId: Number(userId),
-                token: cartToken
-            }
-          })
+          let cart 
+          if(userId) {
+            cart = await prisma.cart.findUnique ({
+             where: { userId}
+           })
+          } else {
+            cart = await prisma.cart.findUnique ({
+             where: { 
+              token: cartToken
+             }
+           })
+          }
 
           if (!cart) {
             throw new Error ('Корзина не найдена')
@@ -158,12 +226,20 @@ class CartService {
            return this.recalcCart(cart?.id)
         }
 
-        async updateCart (productId: number, cartToken: string, quantity: number) {
-             const cart = await prisma.cart.findUnique ({
-            where: {
-                token: cartToken
-            }
-          })
+        async updateCart (productId: number, cartToken: string, quantity: number, userId: number) {
+            
+          let cart 
+          if(userId) {
+            cart = await prisma.cart.findUnique ({
+             where: { userId}
+           })
+          } else {
+            cart = await prisma.cart.findUnique ({
+             where: { 
+              token: cartToken
+             }
+           })
+          }
 
            if (!cart) {
             throw new Error ('Корзина не найдена')

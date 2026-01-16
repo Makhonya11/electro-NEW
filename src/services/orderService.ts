@@ -47,7 +47,7 @@ class OrderService {
                 return order
         }
 
-        async createOrder (userId: number, token: string) {
+        async createOrder (userId: number, token: string, orderData) {
 
               const userCart = await prisma.cart.findUnique({
                 where: {
@@ -65,7 +65,10 @@ class OrderService {
               const newOrder = await prisma.order.create({
                 data: {
                   userId,
-                  totalAmount: userCart?.totalAmount ,
+                  totalAmount: userCart?.totalAmount,
+                  percipientName: orderData.name,
+                  email: orderData.email,
+                  phone: orderData.phone
                 }
               })
 
@@ -97,6 +100,12 @@ class OrderService {
                       product:true
                     }
                   }
+                }
+              })
+
+              await prisma.cartItem.deleteMany({
+                where: {
+                    id: userCart?.id
                 }
               })
 

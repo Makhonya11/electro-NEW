@@ -171,6 +171,9 @@ model Order {
   deliveryPrice   Int?        @default(0)
   paymentType     String      @default("cash")
   deliveryAddress String?     @default("Moscow")
+  // percipientName  String
+  // email           String?
+  // phone           String
 
   userAddressId   Int? 
 

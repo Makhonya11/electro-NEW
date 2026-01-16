@@ -39,7 +39,8 @@ export class OrderController {
            
            const userId = +req.user?.id
            const token = req.cookies.cartToken
-           const newOrder = await orderService.createOrder(userId, token)
+           const orderData = req.body
+           const newOrder = await orderService.createOrder(userId, token, orderData)
            return res.json(newOrder)
 
         } catch (error) {

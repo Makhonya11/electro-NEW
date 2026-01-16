@@ -7,19 +7,29 @@ import { cartService } from "../services/cartService";
 export class CartController {
     static async getCart (req:Request, res: Response) {
       try {
-          //const userId = req.user?.id
+          const userId = +req.user?.id
           let cartToken = req.cookies.cartToken
 
-          if (!cartToken) {
-             cartToken = hashSync('cartToken', 10)
+          let cart 
 
-             res.cookie('cartToken', cartToken, {
-                  httpOnly:true,
-                  sameSite:'lax',
-              })
+          if (userId && !cartToken) {
+             cart = await cartService.getCart(  userId)
           } 
 
-          const cart = await cartService.getCart( cartToken)
+          if (!userId && cartToken) {
+             cart = await cartService.getCart( cartToken)
+          } 
+ 
+          if (!cartToken && !userId) {
+                 cartToken = hashSync('cartToken', 10)
+    
+                 res.cookie('cartToken', cartToken, {
+                      httpOnly:true,
+                      sameSite:'lax',
+                  })
+                  cart = await cartService.getCart( cartToken)
+            } 
+
 
 
           return res.json(cart)
@@ -31,7 +41,7 @@ export class CartController {
 
       static async addToCart (req:Request, res: Response) {
         try {
-            //const userId = req.user?.id
+            const userId = +req.user?.id
             let cartToken = req.cookies.cartToken
             if (!cartToken) {
                 cartToken = hashSync('cartToken', 10)
@@ -44,7 +54,7 @@ export class CartController {
 
           const productId = +req.body.productId
             
-          const cart = await cartService.addToCart(productId, cartToken)
+          const cart = await cartService.addToCart(productId, cartToken, userId)
 
             res.json(cart)
 
@@ -56,12 +66,11 @@ export class CartController {
 
       static async deleteFromCart (req:Request, res: Response) {
         try {
-            //const userId = req.user?.id
+            const userId = +req.user?.id
             const cartToken = req.cookies.cartToken
-
             const productId = +req.body.productId
             
-           const cart =  await cartService.deleteFromCart( productId, cartToken)
+            const cart =  await cartService.deleteFromCart( productId, cartToken, userId)
 
            return res.json(cart)
 
@@ -73,14 +82,13 @@ export class CartController {
     // ДОПИСВТЬ ЭТОТ МЕТОД
       static async updateCart (req:Request, res: Response) {
         try {
-            //const userId = req.user?.id
             const cartToken = req.cookies.cartToken
-
+            const userId = +req.user?.id
             const productId = +req.body.productId
-
             const quantity = +req.body.quantity
             
-            const cart = await cartService.updateCart( productId, cartToken, quantity)
+            
+            const cart = await cartService.updateCart( productId, cartToken, quantity, userId)
 
             return res.json(cart)
 
