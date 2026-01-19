@@ -38,12 +38,14 @@ interface UpdateUserInput extends CreateUserInput {
           throw new Error ('Пользователь с такой почтой уже зарегистрирован')
         }
         
-        const refreshToken = uuid()
-        const refreshHash = hashSync(refreshToken, 10)
+
+        //const refreshToken = jwt.sign(process.env.REFRESH_SECRET as string, process.env.REFRESH_SECRET as string, {expiresIn:'20d'})
+        const refreshHash = hashSync(process.env.REFRESH_SECRET as string, 10)
         const user = await prisma.user.create({
           data: {
             ...data,
-            password: hashSync(password, 10)
+            password: hashSync(password, 10),
+            //refreshHash
           }
         })
         const sessionToken = jwt.sign({id: user.id}, process.env.JWT_SECRET as string, {expiresIn:'7d'})

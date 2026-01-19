@@ -59,6 +59,22 @@ model User {
 }
 
 ////////////////////
+/// RefreshToken
+////////////////////
+
+model RefreshToken {
+  id          String   @id @default(uuid())
+  tokenHash   String   @unique
+  userId      String   @unique   // ← ограничение: один активный refresh
+  expiresAt   DateTime
+  revoked     Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+
+////////////////////
 /// CART
 ////////////////////
 
