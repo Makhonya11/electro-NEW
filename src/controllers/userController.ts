@@ -74,7 +74,6 @@ export class UserController {
      static async getProfile (req: Request, res: Response) {
         try {
             const userId = req.user?.id
-            
             const user = await userService.getProfile( userId)
 
             return res.json(user)
@@ -87,7 +86,6 @@ export class UserController {
      static async getOrders (req: Request, res: Response) {
         try {
             const userId = req.user?.id
-            
             const orders = await userService.getOrders( userId)
 
             return res.json(orders)
@@ -100,7 +98,6 @@ export class UserController {
      static async getFavorites (req, res: Response) {
         try {
             const userId = req.user?.id
-            
             const favorites = await userService.getFavorites(userId)
 
             return res.json(favorites)
@@ -113,7 +110,6 @@ export class UserController {
      static async addToFavorites (req, res: Response) {
         try {
             const userId = req.user?.id
-
             const productId = req.body.productId
             console.log(productId)
             
@@ -129,7 +125,6 @@ export class UserController {
      static async deleteFromFavorites (req, res: Response) {
         try {
             const userId = req.user?.id
-
             const productId = req.body.productId
             
             await userService.toggleFavorite(userId, productId)

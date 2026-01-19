@@ -11,14 +11,6 @@ export class CartController {
           let cartToken = req.cookies.cartToken
 
           let cart 
-
-          if (userId && !cartToken) {
-             cart = await cartService.getCart(  userId)
-          } 
-
-          if (!userId && cartToken) {
-             cart = await cartService.getCart( cartToken)
-          } 
  
           if (!cartToken && !userId) {
                  cartToken = hashSync('cartToken', 10)
@@ -27,9 +19,9 @@ export class CartController {
                       httpOnly:true,
                       sameSite:'lax',
                   })
-                  cart = await cartService.getCart( cartToken)
-            } 
-
+                } 
+                
+            cart = await cartService.getCart( cartToken, userId)
 
 
           return res.json(cart)
@@ -43,16 +35,16 @@ export class CartController {
         try {
             const userId = +req.user?.id
             let cartToken = req.cookies.cartToken
-            if (!cartToken) {
-                cartToken = hashSync('cartToken', 10)
+            const productId = +req.body.productId
 
+             if (!cartToken && !userId) {
+                 cartToken = hashSync('cartToken', 10)
+    
                  res.cookie('cartToken', cartToken, {
-                  httpOnly:true,
-                  sameSite:'lax',
-              })
-            } 
-
-          const productId = +req.body.productId
+                      httpOnly:true,
+                      sameSite:'lax',
+                  })
+                } 
             
           const cart = await cartService.addToCart(productId, cartToken, userId)
 

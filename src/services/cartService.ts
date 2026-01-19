@@ -52,6 +52,9 @@ class CartService {
              let userCart = await prisma.cart.findUnique({
                     where: {
                         userId: userId
+                    },
+                    include: {
+                      items: true
                     }
                 })
 
@@ -59,19 +62,24 @@ class CartService {
                   userCart = await prisma.cart.create({
                     data: {
                       userId
+                    },
+                    include: {
+                      items: true
                     }
                   })
                 }
 
                 return userCart
           } 
-        
           
         private  async getOrCreateGuestCart(cartToken: string) {
 
             let guestCart = await prisma.cart.findUnique({
                     where: {
                         token: cartToken
+                    },
+                    include: {
+                      items: true
                     }
                 })
 
@@ -79,6 +87,9 @@ class CartService {
                   guestCart = await prisma.cart.create({
                     data: {
                       token: cartToken
+                    },
+                    include: {
+                      items: true
                     }
                   })
                 }
@@ -86,7 +97,7 @@ class CartService {
                 return guestCart
           }
             
-            private async mergeCarts(guestCart: Cart, userCart: Cart) {
+            private async mergeCarts(guestCart: Cart , userCart: Cart) {
 
               if (guestCart.items?.length === 0) return
 
@@ -126,7 +137,6 @@ class CartService {
                 }
                })
 
-             
             }
 
             async getCart (cartToken: string | undefined, userId: number | undefined) {

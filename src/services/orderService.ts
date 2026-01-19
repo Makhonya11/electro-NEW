@@ -49,30 +49,48 @@ class OrderService {
 
         async createOrder (userId: number, token: string, orderData) {
 
-              const userCart = await prisma.cart.findUnique({
-                where: {
-                  token
-                },
-                include: {
-                  items: {
-                    include: {
-                      product:true
-                    }
-                  }
-                }
-              })
+          let  cart
+          if (userId) {
+            cart = await prisma.cart.findUnique({
+             where: {
+               userId
+             },
+             include: {
+               items: {
+                 include: {
+                   product:true
+                 }
+               }
+             }
+           })
+          } else {
+            cart = await prisma.cart.findUnique({
+             where: {
+               token
+             },
+             include: {
+               items: {
+                 include: {
+                   product:true
+                 }
+               }
+             }
+           })
+          }
 
               const newOrder = await prisma.order.create({
                 data: {
                   userId,
-                  totalAmount: userCart?.totalAmount,
-                  percipientName: orderData.name,
+                  totalAmount: cart?.totalAmount,
+                  percipientName: orderData.percipientName,
                   email: orderData.email,
-                  phone: orderData.phone
+                  phone: orderData.phone,
+                  deliveryAddress: orderData.deliveryAddress,
+                  deliveryPrice: +orderData.deliveryPrice
                 }
               })
 
-              const orderItems = userCart?.items.map(item => {
+              const orderItems = cart?.items.map(item => {
                 return {
                   orderId: newOrder.id, 
                   productId: item.productId, 
@@ -105,7 +123,7 @@ class OrderService {
 
               await prisma.cartItem.deleteMany({
                 where: {
-                    id: userCart?.id
+                    cartId: cart?.id
                 }
               })
 

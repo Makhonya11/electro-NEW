@@ -26,7 +26,6 @@ interface UpdateUserInput extends CreateUserInput {
      async registration (data: CreateUserInput) {
 
         const {email, password} = data
-
         //console.log(email, password)
 
         const isExisting = await prisma.user.findUnique({
@@ -38,18 +37,18 @@ interface UpdateUserInput extends CreateUserInput {
         if (isExisting) {
           throw new Error ('Пользователь с такой почтой уже зарегистрирован')
         }
-
+        
+        const refreshToken = uuid()
+        const refreshHash = hashSync(refreshToken, 10)
         const user = await prisma.user.create({
           data: {
             ...data,
             password: hashSync(password, 10)
           }
         })
-
         const sessionToken = jwt.sign({id: user.id}, process.env.JWT_SECRET as string, {expiresIn:'7d'})
 
         return {sessionToken, user}
-
     }
 
      async logIn (userData: LoginUserInput) {
