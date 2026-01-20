@@ -9,7 +9,7 @@ export class OrderController {
          const userId = req.user?.id
          const orders = await orderService.getOrders( userId)
 
-          return res.json(orders)
+        return res.json(orders)
 
       } catch (error) {
           console.error('getOrders ERROR',error)
@@ -21,7 +21,6 @@ export class OrderController {
 
             const userId = req.user?.id
             const id = +req.params.id
-
             const order = await orderService.getOrderById(id, userId)
 
             res.json(order)
@@ -45,6 +44,7 @@ export class OrderController {
 
         } catch (error) {
             console.error('createOrder ERROR',error)
+            return res.status(500).json({message: error?.message})
         }
     }
 

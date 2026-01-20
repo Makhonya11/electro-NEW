@@ -7,18 +7,24 @@ export class UserController {
             const {data} = req.body
             console.log(data)
 
-            const {user, sessionToken} = await userService.registration(data)
+            const {user, sessionToken, refreshToken} = await userService.registration(data)
 
             res.cookie('sessionToken', sessionToken, {
                 httpOnly:true,
-                sameSite:'lax',
+                sameSite:'strict',
+                secure: true
+            })
+            res.cookie('refreshToken', refreshToken, {
+                httpOnly:true,
+                sameSite:'strict',
+                secure: true
             })
 
             return res.json(user)
 
         } catch (error) {
             console.error('REGISTRATION ERROR',error)
-            return res.status(500).json({message: error})
+            return res.status(500).json({message: error?.message})
         }
     }
 
@@ -26,25 +32,41 @@ export class UserController {
         try {
             const {email, password } = req.body.data
 
-              const {sessionToken, user} = await userService.logIn({email, password})
+              const {sessionToken, user, refreshToken} = await userService.logIn({email, password})
 
             res.cookie('sessionToken', sessionToken, {
                 httpOnly:true,
-                sameSite:'lax',
+                sameSite:'strict',
+                secure: true
+            })
+            res.cookie('refreshToken', refreshToken, {
+                httpOnly:true,
+                sameSite:'strict',
+                secure: true
             })
 
             return res.json(user)
         } catch (error) {
             console.error('LOGIN ERROR',error)
+            return res.status(401).json({ message: error?.message })
         }
     }
+
     static async logOut (req: Request, res: Response) {
         try {
-            const token = req.cookies.sessionToken
+            const userId = req.user?.id
+            await userService.logOut(userId)
 
                 res.clearCookie('sessionToken', {
                     httpOnly:true,
-                    sameSite:'lax',
+                    sameSite:'strict',
+                    secure: true,
+                    path: '/'
+                })
+                res.clearCookie('refreshToken', {
+                    httpOnly:true,
+                    sameSite:'strict',
+                    secure: true,
                     path: '/'
                 })
 

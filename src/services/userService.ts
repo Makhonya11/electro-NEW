@@ -5,10 +5,6 @@ import path from 'path'
 import {v4 as uuid} from 'uuid'
 
 
-
-
-
-
 interface LoginUserInput {
   email:     string   
   password:  string
@@ -38,19 +34,29 @@ interface UpdateUserInput extends CreateUserInput {
           throw new Error ('Пользователь с такой почтой уже зарегистрирован')
         }
         
-
-        //const refreshToken = jwt.sign(process.env.REFRESH_SECRET as string, process.env.REFRESH_SECRET as string, {expiresIn:'20d'})
-        const refreshHash = hashSync(process.env.REFRESH_SECRET as string, 10)
         const user = await prisma.user.create({
           data: {
             ...data,
-            password: hashSync(password, 10),
-            //refreshHash
+            password: hashSync(password, 10)
           }
         })
-        const sessionToken = jwt.sign({id: user.id}, process.env.JWT_SECRET as string, {expiresIn:'7d'})
+        const refreshToken = jwt.sign({id: user.id}, process.env.REFRESH_SECRET!, {expiresIn:'30d'})
+        const refreshTokenHash = hashSync(refreshToken, 10)
+        const refreshExp = new Date()
+        refreshExp.setDate(refreshExp.getDate() + 30)
+        const sessionToken = jwt.sign({id: user.id}, process.env.JWT_SECRET!, {expiresIn:'5m'})
 
-        return {sessionToken, user}
+        await prisma.user.update({
+          where: {
+            id: user.id
+          },
+          data: {
+            refreshTokenHash,
+            refreshTokenExp: refreshExp
+          }
+        })
+
+        return {sessionToken, user, refreshToken}
     }
 
      async logIn (userData: LoginUserInput) {
@@ -62,23 +68,46 @@ interface UpdateUserInput extends CreateUserInput {
               email
           }
         })
-
         console.log(user)
 
         if (!user) {
           throw new Error ('Пользователя с такой почтой не существует')
         }
-
         const isMatchPassword = await compare(password, user.password)
 
         if (!isMatchPassword) {
           throw new Error ('Указан неверный логин или пароль')
         }
 
-        const sessionToken = jwt.sign({id: user.id}, process.env.JWT_SECRET as string, {expiresIn:'7d'})
+        const refreshToken = jwt.sign({id: user.id}, process.env.REFRESH_SECRET as string, {expiresIn:'30d'})
+        const refreshTokenHash = hashSync(refreshToken, 10)
+        const refreshExp = new Date()
+        refreshExp.setDate(refreshExp.getDate() + 30)
+        const sessionToken = jwt.sign({id: user.id}, process.env.JWT_SECRET as string, {expiresIn:'1h'})
 
-        return {sessionToken, user}
+        await prisma.user.update({
+          where: {
+            id: user.id
+          },
+          data: {
+            refreshTokenHash,
+            refreshTokenExp: refreshExp
+          }
+        })
+        return {sessionToken, user, refreshToken}
+    }
 
+     async logOut (userId: number) {
+
+         await prisma.user.update({
+          where: {
+              id: userId
+          }, 
+          data: {
+            refreshTokenHash: null,
+            refreshTokenExp: null
+          }
+        })
     }
 
      async updateProfile (userData: UpdateUserInput, userId: number, image: string) {

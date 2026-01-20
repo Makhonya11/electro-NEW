@@ -1,15 +1,30 @@
-import { Category } from './../../node_modules/.prisma/client/index.d';
+import { verify } from 'jsonwebtoken';
+import { authService } from './../services/authService';
 import { Request, Response } from "express";
-import { userService } from "../services/userService";
-import { productService } from "../services/productService";
+
 
 export class AuthController {
 
     static async refreshToken (req: Request, res: Response) {
+      
+        const refreshToken = req.cookies.refreshToken
+        if (!refreshToken) {
+            return res.status(401).json({message: "Необходима авторизация"})
+        }
         try {
 
-            const categories = await productService.getCategories()
-            return res.json(categories)
+            const userData = verify(refreshToken, process.env.REFRESH_SECRET as string)
+            const userId = +userData?.id
+            const accessToken = await authService.refreshToken(userId, refreshToken)
+
+            if (accessToken) {
+                res.cookie('sessionToken', accessToken, {
+                httpOnly:true,
+                sameSite:'strict',
+                secure: true
+            })
+            }
+            return res.status(200).json({message: 'Access token обновлён'})
 
         } catch (error) {
             console.error('getCategories ERROR',error)
