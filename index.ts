@@ -3,6 +3,7 @@ import cors from 'cors'
 import dotenv from 'dotenv';
 import cookieParser from 'cookie-parser'
 import router from './src/routes';
+import { errorMiddleware } from './src/middlewares/errorMiddleware';
 
 
 dotenv.config();
@@ -17,6 +18,8 @@ app.use(express.urlencoded({ extended: true }))
 app.use(cookieParser())
 app.use('/api', router)
 app.use('/uploads', express.static('uploads'))
+app.use(errorMiddleware)
+
 
 
 const start = () => {
