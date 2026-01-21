@@ -1,6 +1,7 @@
 import { ErrorRequestHandler } from 'express'
-import { ApiError } from '../apiError'
+
 import { Prisma } from '@prisma/client'
+import { ApiError } from '../errors/apiError'
 
 
 export const errorMiddleware: ErrorRequestHandler = (err,req,res, next) => {

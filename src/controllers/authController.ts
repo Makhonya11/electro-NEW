@@ -1,6 +1,11 @@
-import { verify } from 'jsonwebtoken';
+import { JwtPayload, verify } from 'jsonwebtoken';
 import { authService } from './../services/authService';
 import { Request, Response } from "express";
+import { ApiError } from '../errors/apiError';
+
+interface RefreshTokenPayload extends JwtPayload {
+  id: number
+}
 
 
 export class AuthController {
@@ -9,12 +14,15 @@ export class AuthController {
       
         const refreshToken = req.cookies.refreshToken
         if (!refreshToken) {
-            return res.status(401).json({message: "Необходима авторизация"})
+            throw ApiError.unauthorized()
         }
-        try {
 
-            const userData = verify(refreshToken, process.env.REFRESH_SECRET as string)
-            const userId = +userData?.id
+            const userData = verify(refreshToken, process.env.REFRESH_SECRET!)
+            if (typeof userData !== 'object' || !('id' in userData)) {
+                throw ApiError.unauthorized()
+            }
+            const userId = +userData?.id 
+
             const accessToken = await authService.refreshToken(userId, refreshToken)
 
             if (accessToken) {
@@ -25,10 +33,6 @@ export class AuthController {
             })
             }
             return res.status(200).json({message: 'Access token обновлён'})
-
-        } catch (error) {
-            console.error('getCategories ERROR',error)
-        }
     }
 
    

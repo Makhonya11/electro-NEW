@@ -2,7 +2,8 @@ import { authMiddleware } from './../middlewares/authMiddleware';
 import { Router } from "express";
 import { CartController } from '../controllers/cartController';
 import { optionalAuthMiddleware } from '../middlewares/optionalAuthMiddleware';
-import { asyncErrorHandler } from '../asyncErrorHandler';
+import { asyncErrorHandler } from '../middlewares/asyncErrorHandler';
+
 
 
 const router = new Router() 

@@ -1,4 +1,4 @@
-import { asyncErrorHandler } from './../asyncErrorHandler';
+import { asyncErrorHandler } from '../middlewares/asyncErrorHandler';
 import { OrderController } from './../controllers/orderController';
 import { authMiddleware } from './../middlewares/authMiddleware';
 import { Router } from "express";

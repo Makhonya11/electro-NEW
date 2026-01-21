@@ -4,6 +4,7 @@ import { hashSync } from "bcrypt"
 import { prisma } from "../../prisma/prisma-client"
 import { tr } from "zod/locales"
 import { calcCartTotal } from '../utils/calcCartTotal';
+import { ApiError } from '../errors/apiError';
 
 
 class CartService {
@@ -23,7 +24,7 @@ class CartService {
           })
 
           if (!cart) {
-            throw new Error('Корзина не найдена')
+            throw ApiError.notFound('Корзина не найдена')
           } 
 
           const totalAmount = calcCartTotal(cart?.items)
@@ -114,7 +115,7 @@ class CartService {
                   if (existingItem) {
                     await prisma.cartItem.update({
                       where: {
-                        id: existingItem.cartId
+                        id: existingItem.id
                       },
                       data: {
                         quantity: existingItem.quantity + item.quantity
@@ -158,11 +159,12 @@ class CartService {
               if( guestCart) return this.recalcCart(guestCart.id)
               if( userCart) return this.recalcCart(userCart.id)
               
-              throw new Error('Корзина не найдена')
+              throw ApiError.notFound('Корзина не найдена')
+
             }
 
 
-        async addToCart( productId: number, cartToken: string, userId: number) {
+        async addToCart( productId: number, cartToken: string, userId: number | undefined) {
           let cart
 
           if (userId) {
@@ -205,7 +207,7 @@ class CartService {
           return this.recalcCart(cart.id)
         }
 
-        async deleteFromCart( productId: number, cartToken: string, userId: number) {
+        async deleteFromCart( productId: number, cartToken: string | undefined, userId: number | undefined) {
           
           let cart 
           if(userId) {
@@ -221,7 +223,7 @@ class CartService {
           }
 
           if (!cart) {
-            throw new Error ('Корзина не найдена')
+            throw ApiError.notFound('Корзина не найдена')
           }
     
            await prisma.cartItem.delete({
@@ -236,7 +238,7 @@ class CartService {
            return this.recalcCart(cart?.id)
         }
 
-        async updateCart (productId: number, cartToken: string, quantity: number, userId: number) {
+        async updateCart (productId: number, cartToken: string | undefined, quantity: number, userId: number | undefined) {
             
           let cart 
           if(userId) {
@@ -252,7 +254,7 @@ class CartService {
           }
 
            if (!cart) {
-            throw new Error ('Корзина не найдена')
+            throw ApiError.notFound('Корзина не найдена')
           }
 
            await prisma.cartItem.update ({
@@ -269,7 +271,6 @@ class CartService {
 
           return this.recalcCart(cart?.id)
         }
-  
 }
 
 export const cartService = new CartService ()

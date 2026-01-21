@@ -3,6 +3,7 @@ import jwt from 'jsonwebtoken'
 import { prisma } from '../../prisma/prisma-client'
 import path from 'path'
 import {v4 as uuid} from 'uuid'
+import { ApiError } from '../errors/apiError'
 
 
 interface LoginUserInput {
@@ -22,7 +23,6 @@ interface UpdateUserInput extends CreateUserInput {
      async registration (data: CreateUserInput) {
 
         const {email, password} = data
-        //console.log(email, password)
 
         const isExisting = await prisma.user.findUnique({
           where: {
@@ -31,10 +31,10 @@ interface UpdateUserInput extends CreateUserInput {
         })
 
         if (isExisting) {
-          throw new Error ('Пользователь с такой почтой уже зарегистрирован')
+          throw ApiError.conflict('Пользователь с такой почтой уже зарегистрирован')
         }
         
-        const user = await prisma.user.create({
+        let user = await prisma.user.create({
           data: {
             ...data,
             password: hashSync(password, 10)
@@ -46,7 +46,7 @@ interface UpdateUserInput extends CreateUserInput {
         refreshExp.setDate(refreshExp.getDate() + 30)
         const sessionToken = jwt.sign({id: user.id}, process.env.JWT_SECRET!, {expiresIn:'5m'})
 
-        await prisma.user.update({
+        user = await prisma.user.update({
           where: {
             id: user.id
           },
@@ -63,7 +63,7 @@ interface UpdateUserInput extends CreateUserInput {
 
         const {email, password} = userData
 
-        const user = await prisma.user.findUnique({
+        let user = await prisma.user.findUnique({
           where: {
               email
           }
@@ -71,21 +71,21 @@ interface UpdateUserInput extends CreateUserInput {
         console.log(user)
 
         if (!user) {
-          throw new Error ('Пользователя с такой почтой не существует')
+          throw ApiError.badRequest('Неверный логин или пароль')
         }
         const isMatchPassword = await compare(password, user.password)
 
         if (!isMatchPassword) {
-          throw new Error ('Указан неверный логин или пароль')
+           throw ApiError.badRequest('Неверный логин или пароль')
         }
 
         const refreshToken = jwt.sign({id: user.id}, process.env.REFRESH_SECRET as string, {expiresIn:'30d'})
         const refreshTokenHash = hashSync(refreshToken, 10)
         const refreshExp = new Date()
         refreshExp.setDate(refreshExp.getDate() + 30)
-        const sessionToken = jwt.sign({id: user.id}, process.env.JWT_SECRET as string, {expiresIn:'1h'})
+        const sessionToken = jwt.sign({id: user.id}, process.env.JWT_SECRET as string, {expiresIn:'5m'})
 
-        await prisma.user.update({
+        user =  await prisma.user.update({
           where: {
             id: user.id
           },
@@ -110,7 +110,7 @@ interface UpdateUserInput extends CreateUserInput {
         })
     }
 
-     async updateProfile (userData: UpdateUserInput, userId: number, image: string) {
+     async updateProfile (userData: UpdateUserInput, userId: number, image: string | undefined) {
 
       if (userData.password) {
          userData.password = hashSync(userData.password, 10)
@@ -127,36 +127,25 @@ interface UpdateUserInput extends CreateUserInput {
         })
 
         if (!updatedUser) {
-          throw new Error ("Пользователь не найден")
+           throw ApiError.notFound('Пользователь не найден')
         }
         return updatedUser
     }
 
-    async getProfile(userId: string) {
+    async getProfile(userId: number) {
       const user = await prisma.user.findUnique({
         where: {
-          id: Number(userId)
+          id: userId
         }
       }) 
 
       if (!user) {
-        throw new Error ('Необходима авторизация')
+         throw ApiError.unauthorized()
       }
-
       return user
     }
 
-    async getOrders(userId: string) {
-      const orders = await prisma.order.findMany({
-        where: {
-          userId: Number(userId)
-        }
-      }) 
-
-      return orders
-    }
-
-    async getFavorites(userId: string) {
+    async getFavorites(userId: number) {
       const favorites = await prisma.favorite.findMany({
         where: {
           userId: Number(userId)
@@ -168,11 +157,11 @@ interface UpdateUserInput extends CreateUserInput {
       return favorites
     }
    
-    async toggleFavorite(userId: string, productId: string) {
+    async toggleFavorite(userId: number, productId: string) {
       const isFavorite = await prisma.favorite.findUnique({
        where: {
         userId_productId: {
-        userId: +userId,
+        userId: userId,
         productId: +productId
        }
       }}) 
@@ -186,8 +175,8 @@ interface UpdateUserInput extends CreateUserInput {
       } else {
           await prisma.favorite.create({
         data: {
-          userId: Number(userId),
-          productId: Number(productId)
+          userId: userId,
+          productId: +productId
         }
       })
       }

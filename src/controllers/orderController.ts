@@ -2,22 +2,21 @@ import { Request, Response } from "express";
 import { prisma } from "../../prisma/prisma-client";
 import { orderService } from "../services/orderService";
 
+interface RequestWithAuth extends Request {
+    user: {
+        id: number
+    }
+}
 
 export class OrderController {
-    static async getOrders (req:Request, res: Response) {
-      try {
-         const userId = req.user?.id
+    static async getOrders (req:RequestWithAuth, res: Response) {
+         const userId = req.user.id
          const orders = await orderService.getOrders( userId)
 
         return res.json(orders)
-
-      } catch (error) {
-          console.error('getOrders ERROR',error)
-      }
   }
 
-      static async getOrderById (req:Request, res: Response) {
-        try {
+      static async getOrderById (req:RequestWithAuth, res: Response) {
 
             const userId = req.user?.id
             const id = +req.params.id
@@ -25,16 +24,9 @@ export class OrderController {
 
             res.json(order)
 
-        } catch (error:any) {
-            //if (error.code === 'P2025') {
-                return res.status(404).json({ message: error.message })
-             //}
-            console.error('getOrderById ERROR',error)
-        }
     }
 
-      static async create (req:Request, res: Response) {
-        try {
+      static async create (req:RequestWithAuth, res: Response) {
            
            const userId = +req.user?.id
            const token = req.cookies.cartToken
@@ -42,14 +34,10 @@ export class OrderController {
            const newOrder = await orderService.createOrder(userId, token, orderData)
            return res.json(newOrder)
 
-        } catch (error) {
-            console.error('createOrder ERROR',error)
-            return res.status(500).json({message: error?.message})
-        }
+
     }
 
-      static async cancel (req:Request, res: Response) {
-        try {
+      static async cancel (req:RequestWithAuth, res: Response) {
 
             const userId = +req.user?.id
             const orderId = +req.params.id
@@ -57,32 +45,19 @@ export class OrderController {
 
             res.json(order)
 
-        } catch (error:any) {
-             if (error.code === 'P2025') {
-    return res.status(404).json({ message: 'Заказ не найден' })
-  }
-            console.error('getOrderById ERROR',error)
-        }
+
     }
 
-      static async updateStatus (req:Request, res: Response) {
-        try {
+      static async updateStatus (req:RequestWithAuth, res: Response) {
 
             const userId = req.user?.id
             const orderId = +req.params.id
             const status = req.body.status
             console.log(status)
 
-            const order = await orderService.updateStatus( orderId, status)
+            const order = await orderService.updateStatus( orderId, status, userId)
 
-            res.json(order)
-
-        } catch (error:any) {
-             if (error.code === 'P2025') {
-                return res.status(404).json({ message: 'Заказ не найден' })
-             }
-            console.error('getOrderById ERROR',error)
-        }
+            return res.status(200).json(order)
     }
 }
 

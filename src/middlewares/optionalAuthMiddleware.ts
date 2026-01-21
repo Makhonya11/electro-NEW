@@ -1,6 +1,12 @@
+import { NextFunction } from 'express'
 import {verify} from 'jsonwebtoken'
 
-export const optionalAuthMiddleware = (req: Request, res, next) => {
+interface RequestWithCookies extends Request {
+  cookies: { [key: string]: string }, // ключ — имя куки
+  user?: {}
+}
+
+export const optionalAuthMiddleware = (req: RequestWithCookies, res:Response, next:NextFunction) => {
 
     const token = req.cookies.sessionToken
 if (!token) {

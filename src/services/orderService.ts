@@ -1,13 +1,15 @@
-import { OrderStatus } from "@prisma/client"
+import { Order, OrderStatus } from "@prisma/client"
 import { prisma } from "../../prisma/prisma-client"
+import { ApiError } from "../errors/apiError"
 
 
+interface OrderData {
 
+}
 
 class OrderService {
 
-        async getOrders (userId: number) {
-
+        async getOrders (userId: number ) {
                 const orders = await prisma.order.findMany({
                     where: {
                         userId
@@ -41,13 +43,13 @@ class OrderService {
                 })
 
                 if (!order) {
-                  throw new Error ("Заказ не найден")
+                    throw ApiError.notFound('Заказ не найден')
                 }
 
                 return order
         }
 
-        async createOrder (userId: number, token: string, orderData) {
+        async createOrder (userId: number, token: string, orderData: Order) {
 
           let  cart
           if (userId) {
@@ -78,6 +80,11 @@ class OrderService {
            })
           }
 
+          if (!cart || cart.items.length === 0) {
+           throw ApiError.badRequest('Корзина пуста')
+          }
+
+
               const newOrder = await prisma.order.create({
                 data: {
                   userId,
@@ -101,7 +108,7 @@ class OrderService {
               console.log(orderItems)
               
               if (!orderItems) {
-                throw new Error ('ошибка создания заказа')
+                throw ApiError.badRequest('Ошибка создания заказа')
               }
               
                await prisma.orderItem.createMany({
@@ -141,7 +148,6 @@ class OrderService {
                       status: "CANCELED"
                     }
                 })
-
                 return order
         }
 
@@ -156,10 +162,8 @@ class OrderService {
                       status
                     }
                 })
-
                 return order
         }
-
 }
 
 export const orderService = new OrderService ()

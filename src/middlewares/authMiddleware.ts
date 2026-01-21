@@ -1,10 +1,18 @@
+import { NextFunction } from 'express'
 import {verify} from 'jsonwebtoken'
+import { ApiError } from '../errors/apiError'
 
-export const authMiddleware = (req, res, next) => {
+interface RequestWithCookies extends Request {
+  cookies: { [key: string]: string }, // ключ — имя куки
+  user?: {}
+}
 
-    const token = req.cookies.sessionToken
+
+export const authMiddleware = (req:RequestWithCookies, res:Response, next:NextFunction) => {
+
+    const token = req.cookies?.sessionToken
 if (!token) {
-    return res.status(401).json({message: 'Необходима авторизация'})
+    throw ApiError.unauthorized()
 }
 
 try {
@@ -13,7 +21,7 @@ try {
     next()
 } catch (error) {
     console.error('Auth Error', error)
-    return res.status(401).json({message: 'Неверный токен авторизации'})
+     throw ApiError.unauthorized()
 }
 
 }

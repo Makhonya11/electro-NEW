@@ -10,7 +10,7 @@ export class ApiError extends Error {
     return new ApiError(400, message)
   }
 
-  static unauthorized(message = 'Unauthorized') {
+  static unauthorized(message = 'Необходима авторизация') {
     return new ApiError(401, message)
   }
 
@@ -20,5 +20,8 @@ export class ApiError extends Error {
 
   static notFound(message = 'Not found') {
     return new ApiError(404, message)
+  }
+  static conflict(message = 'Конфликт данных') {
+    return new ApiError(409, message)
   }
 }

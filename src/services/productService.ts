@@ -12,7 +12,7 @@ class ProductService {
     async getProductsByCategory (categoryId: string) {
         const products = await prisma.product.findMany({
             where: {
-                categoryId: Number(categoryId)
+                categoryId: +categoryId
             }
         })
         return products

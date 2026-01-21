@@ -1,6 +1,7 @@
-import { asyncErrorHandler } from './../asyncErrorHandler';
+
 import { Router } from "express";
 import { ProductController } from "../controllers/productController";
+import { asyncErrorHandler } from "../middlewares/asyncErrorHandler";
 
 
 const router = new Router() 

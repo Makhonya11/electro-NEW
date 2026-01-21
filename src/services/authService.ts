@@ -3,6 +3,7 @@ import { v4 as uuid } from "uuid";
 import { prisma } from "../../prisma/prisma-client";
 import { compare, compareSync, hashSync } from "bcrypt";
 import jwt from 'jsonwebtoken'
+import { ApiError } from "../errors/apiError";
 
 class AuthService {
     async refreshToken (id: number, refreshToken: string) {
@@ -11,13 +12,13 @@ class AuthService {
                 id
             }
         })
-        if (!user) {
-            throw new Error ("Необходима авторизация")
-        }
+        if (!user || !user.refreshTokenHash || !user.refreshTokenExp) {
+        throw ApiError.unauthorized()
+  }
 
         const isValidRefresh = compareSync(refreshToken, user?.refreshTokenHash!)
         if (!isValidRefresh || user.refreshTokenExp! < new Date()) {
-            throw new Error ("Необходима авторизация")
+            throw ApiError.unauthorized()
         }
 
         const newAccessToken = jwt.sign({id: user.id}, process.env.JWT_SECRET as string, {expiresIn:'5m'})
