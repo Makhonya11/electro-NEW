@@ -1,169 +1,158 @@
-import { Order, OrderStatus } from "@prisma/client"
-import { prisma } from "../../prisma/prisma-client"
-import { ApiError } from "../errors/apiError"
-
-
-interface OrderData {
-
-}
+import type { Order, OrderStatus } from '@prisma/client';
+import { prisma } from '../../prisma/prisma-client';
+import { ApiError } from '../errors/apiError';
 
 class OrderService {
+  async getOrders(userId: number) {
+    const orders = await prisma.order.findMany({
+      where: {
+        userId,
+      },
+      include: {
+        items: {
+          include: {
+            product: true,
+          },
+        },
+      },
+    });
 
-        async getOrders (userId: number ) {
-                const orders = await prisma.order.findMany({
-                    where: {
-                        userId
-                    },
-                    include: {
-              items: {
-                include: {
-                  product:true
-                }
-              }
-            }
-                })
+    return orders;
+  }
 
-                return orders
-        }
+  async getOrderById(id: number, userId: number) {
+    const order = await prisma.order.findUnique({
+      where: {
+        id,
+        userId,
+      },
+      include: {
+        items: {
+          include: {
+            product: true,
+          },
+        },
+      },
+    });
 
-        async getOrderById (id: number, userId: number) {
+    if (!order) {
+      throw ApiError.notFound('Заказ не найден');
+    }
 
-                const order = await prisma.order.findUnique({
-                    where: {
-                        id,
-                        userId
-                    },
-                    include: {
-              items: {
-                include: {
-                  product:true
-                }
-              }
-            }
-                })
+    return order;
+  }
 
-                if (!order) {
-                    throw ApiError.notFound('Заказ не найден')
-                }
+  async createOrder(userId: number, token: string, orderData: Order) {
+    let cart;
+    if (userId) {
+      cart = await prisma.cart.findUnique({
+        where: {
+          userId,
+        },
+        include: {
+          items: {
+            include: {
+              product: true,
+            },
+          },
+        },
+      });
+    } else {
+      cart = await prisma.cart.findUnique({
+        where: {
+          token,
+        },
+        include: {
+          items: {
+            include: {
+              product: true,
+            },
+          },
+        },
+      });
+    }
 
-                return order
-        }
+    if (!cart || cart.items.length === 0) {
+      throw ApiError.badRequest('Корзина пуста');
+    }
 
-        async createOrder (userId: number, token: string, orderData: Order) {
+    const newOrder = await prisma.order.create({
+      data: {
+        userId,
+        totalAmount: cart?.totalAmount,
+        percipientName: orderData.percipientName,
+        email: orderData.email,
+        phone: orderData.phone,
+        deliveryAddress: orderData.deliveryAddress,
+        deliveryPrice: +orderData.deliveryPrice,
+      },
+    });
 
-          let  cart
-          if (userId) {
-            cart = await prisma.cart.findUnique({
-             where: {
-               userId
-             },
-             include: {
-               items: {
-                 include: {
-                   product:true
-                 }
-               }
-             }
-           })
-          } else {
-            cart = await prisma.cart.findUnique({
-             where: {
-               token
-             },
-             include: {
-               items: {
-                 include: {
-                   product:true
-                 }
-               }
-             }
-           })
-          }
+    const orderItems = cart?.items.map((item) => {
+      return {
+        orderId: newOrder.id,
+        productId: item.productId,
+        priceAtBuy: item.product.price,
+        quantity: item.quantity,
+      };
+    });
+    console.log(orderItems);
 
-          if (!cart || cart.items.length === 0) {
-           throw ApiError.badRequest('Корзина пуста')
-          }
+    if (!orderItems) {
+      throw ApiError.badRequest('Ошибка создания заказа');
+    }
 
+    await prisma.orderItem.createMany({
+      data: orderItems,
+    });
 
-              const newOrder = await prisma.order.create({
-                data: {
-                  userId,
-                  totalAmount: cart?.totalAmount,
-                  percipientName: orderData.percipientName,
-                  email: orderData.email,
-                  phone: orderData.phone,
-                  deliveryAddress: orderData.deliveryAddress,
-                  deliveryPrice: +orderData.deliveryPrice
-                }
-              })
+    const order = await prisma.order.findUnique({
+      where: {
+        id: newOrder.id,
+      },
+      include: {
+        items: {
+          include: {
+            product: true,
+          },
+        },
+      },
+    });
 
-              const orderItems = cart?.items.map(item => {
-                return {
-                  orderId: newOrder.id, 
-                  productId: item.productId, 
-                  priceAtBuy: item.product.price,
-                  quantity: item.quantity
-                }
-              })
-              console.log(orderItems)
-              
-              if (!orderItems) {
-                throw ApiError.badRequest('Ошибка создания заказа')
-              }
-              
-               await prisma.orderItem.createMany({
-                data: orderItems 
-               })
+    await prisma.cartItem.deleteMany({
+      where: {
+        cartId: cart?.id,
+      },
+    });
 
-                const order = await prisma.order.findUnique({
-                where: {
-                  id: newOrder.id
-                },
-                include: {
-                  items: {
-                    include: {
-                      product:true
-                    }
-                  }
-                }
-              })
+    return order;
+  }
 
-              await prisma.cartItem.deleteMany({
-                where: {
-                    cartId: cart?.id
-                }
-              })
+  async cancelOrder(id: number, userId: number) {
+    const order = await prisma.order.update({
+      where: {
+        id,
+        userId,
+      },
+      data: {
+        status: 'CANCELED',
+      },
+    });
+    return order;
+  }
 
-                return order
-        }
-
-          async cancelOrder (id: number, userId: number) {
-
-                const order = await prisma.order.update({
-                    where: {
-                        id,
-                        userId
-                    }, 
-                    data: {
-                      status: "CANCELED"
-                    }
-                })
-                return order
-        }
-
-          async updateStatus (id: number, status: OrderStatus, userId: number ) {
-
-                const order = await prisma.order.update({
-                    where: {
-                        id,
-                        userId
-                    }, 
-                    data: {
-                      status
-                    }
-                })
-                return order
-        }
+  async updateStatus(id: number, status: OrderStatus, userId: number) {
+    const order = await prisma.order.update({
+      where: {
+        id,
+        userId,
+      },
+      data: {
+        status,
+      },
+    });
+    return order;
+  }
 }
 
-export const orderService = new OrderService ()
+export const orderService = new OrderService();

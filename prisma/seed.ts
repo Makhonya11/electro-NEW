@@ -1,7 +1,7 @@
-import { PrismaClient, UserRole, OrderStatus, PaymentProvider, PaymentStatus } from '@prisma/client'
-import { hashSync } from 'bcrypt'
+import { PrismaClient, UserRole, OrderStatus, PaymentProvider, PaymentStatus } from '@prisma/client';
+import { hashSync } from 'bcrypt';
 
-const prisma = new PrismaClient()
+const prisma = new PrismaClient();
 
 async function up() {
   // ======================
@@ -15,34 +15,34 @@ async function up() {
       phone: '+79990000000',
       role: UserRole.USER,
     },
-  })
+  });
 
-  const admin = await prisma.user.create({
+  await prisma.user.create({
     data: {
       email: 'admin@test.com',
       password: hashSync('admin123', 10),
       name: 'Admin',
       role: UserRole.ADMIN,
     },
-  })
+  });
 
   // ======================
   // BRAND / CATEGORY
   // ======================
   const brand = await prisma.brand.create({
     data: { name: 'Apple' },
-  })
+  });
 
   const category = await prisma.category.create({
     data: { name: 'Smartphones' },
-  })
+  });
 
   await prisma.typeBrand.create({
     data: {
       brandId: brand.id,
       categoryId: category.id,
     },
-  })
+  });
 
   // ======================
   // PRODUCT
@@ -63,19 +63,16 @@ async function up() {
       },
       images: {
         createMany: {
-          data: [
-            { url: '/uploads/iphone-main.jpg', isMain: true },
-            { url: '/uploads/iphone-2.jpg' },
-          ],
+          data: [{ url: '/uploads/iphone-main.jpg', isMain: true }, { url: '/uploads/iphone-2.jpg' }],
         },
       },
     },
-  })
+  });
 
   // ======================
   // CART
   // ======================
-  const cart = await prisma.cart.create({
+  await prisma.cart.create({
     data: {
       userId: user.id,
       items: {
@@ -85,7 +82,7 @@ async function up() {
         },
       },
     },
-  })
+  });
 
   // ======================
   // FAVORITE
@@ -95,7 +92,7 @@ async function up() {
       userId: user.id,
       productId: product.id,
     },
-  })
+  });
 
   // ======================
   // ADDRESS
@@ -109,7 +106,7 @@ async function up() {
       longitude: 37.6208,
       isDefault: true,
     },
-  })
+  });
 
   // ======================
   // ORDER
@@ -134,7 +131,7 @@ async function up() {
         },
       },
     },
-  })
+  });
 
   // ======================
   // PAYMENT
@@ -151,9 +148,9 @@ async function up() {
       confirmationUrl: 'https://stripe.com/pay',
       receiptJson: { receipt: true },
     },
-  })
+  });
 
-  console.log('✅ Seed completed')
+  console.log('✅ Seed completed');
 }
 
 async function down() {
@@ -171,19 +168,19 @@ async function down() {
 }
 
 async function main() {
-    try {
-        await down()
-        await up()
-    } catch (error) {
-        console.log (error)
-    }
+  try {
+    await down();
+    await up();
+  } catch (error) {
+    console.log(error);
+  }
 }
 
 main()
   .catch((e) => {
-    console.error(e)
-    process.exit(1)
+    console.error(e);
+    process.exit(1);
   })
   .finally(async () => {
-    await prisma.$disconnect()
-  })
+    await prisma.$disconnect();
+  });

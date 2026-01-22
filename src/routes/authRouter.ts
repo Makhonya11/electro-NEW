@@ -1,13 +1,10 @@
 import { asyncErrorHandler } from './../middlewares/asyncErrorHandler';
 
-import { Router } from "express";
-import { AuthController } from "../controllers/authController";
+import { Router } from 'express';
+import { AuthController } from '../controllers/authController';
 
+const router = Router();
 
+router.post('/refresh', asyncErrorHandler(AuthController.refreshToken));
 
-const router = new Router() 
-
-router.post('/refresh',  asyncErrorHandler(AuthController.refreshToken))
-
-
-export default router
+export default router;
