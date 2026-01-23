@@ -5,8 +5,8 @@ import { asyncErrorHandler } from '../middlewares/asyncErrorHandler';
 const router = Router();
 
 router.get('/', asyncErrorHandler(ProductController.getCategories));
-router.get(`/:categoryName`, asyncErrorHandler(ProductController.getProductsByCategory));
-router.get(`/brand/:brandName`, asyncErrorHandler(ProductController.getProductsByBrand));
-router.get(`/:categoryName/:productName`, asyncErrorHandler(ProductController.getProduct));
+router.get(`/category/:categoryId`, asyncErrorHandler(ProductController.getProductsByCategory));
+router.get(`/brand/:brandId`, asyncErrorHandler(ProductController.getProductsByBrand));
+router.get(`/category/:categoryId/:productId`, asyncErrorHandler(ProductController.getProduct));
 
 export default router;

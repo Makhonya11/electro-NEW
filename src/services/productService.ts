@@ -29,6 +29,9 @@ class ProductService {
       where: {
         id: Number(productid),
       },
+      include: {
+        info: true,
+      },
     });
     return product;
   }

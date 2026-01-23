@@ -1,9 +1,9 @@
-import type { ErrorRequestHandler } from 'express';
+import type { ErrorRequestHandler, Response } from 'express';
 
 import { Prisma } from '@prisma/client';
 import { ApiError } from '../errors/apiError';
 
-export const errorMiddleware: ErrorRequestHandler = (err, req, res) => {
+export const errorMiddleware: ErrorRequestHandler = (err, req, res: Response) => {
   if (err instanceof ApiError) {
     return res.status(err.status).json({ message: err.message });
   }
@@ -31,7 +31,7 @@ export const errorMiddleware: ErrorRequestHandler = (err, req, res) => {
     });
   }
 
-  console.error(err);
+  //console.error(err);
 
   return res.status(500).json({
     message: 'Непредвиденная ошибка сервера',

@@ -2,7 +2,7 @@ import type { Request, Response } from 'express';
 import { userService } from '../services/userService';
 
 interface RequestWithAuth extends Request {
-  user: {
+  user?: {
     id: number;
   };
 }
@@ -66,8 +66,7 @@ export class UserController {
 
   static async logOut(req: RequestWithAuth, res: Response) {
     const userId = req.user?.id;
-    console.log(userId);
-    await userService.logOut(userId);
+    await userService.logOut(userId!);
 
     res.clearCookie('sessionToken', {
       httpOnly: true,
@@ -91,38 +90,40 @@ export class UserController {
     const image = req.file?.filename;
     console.log(req.file);
 
-    const user = await userService.updateProfile(userData, userId, image);
+    const user = await userService.updateProfile(userData, userId!, image);
 
     return res.json(user);
   }
 
   static async getProfile(req: RequestWithAuth, res: Response) {
-    const userId = req.user.id;
-    const user = await userService.getProfile(userId);
+    const userId = req.user?.id;
+    const user = await userService.getProfile(userId!);
 
     return res.json(user);
   }
 
   static async getFavorites(req: RequestWithAuth, res: Response) {
-    const userId = req.user.id;
-    const favorites = await userService.getFavorites(userId);
+    const userId = req.user?.id;
+    const favorites = await userService.getFavorites(userId!);
 
     return res.json(favorites);
   }
 
   static async addToFavorites(req: RequestWithAuth, res: Response) {
-    const userId = req.user.id;
+    const userId = req.user?.id;
     const { productId } = req.body as ProductData;
+    console.log(productId);
 
-    await userService.toggleFavorite(userId, productId);
+    await userService.toggleFavorite(userId!, productId);
 
     return res.status(200).json({ message: 'Товар добавлен в избранное' });
   }
+
   static async deleteFromFavorites(req: RequestWithAuth, res: Response) {
-    const userId = req.user.id;
+    const userId = req.user?.id;
     const { productId } = req.body as ProductData;
 
-    await userService.toggleFavorite(userId, productId);
+    await userService.toggleFavorite(userId!, productId);
     return res.status(200).json({ message: 'Товар удален из избранных' });
   }
 }

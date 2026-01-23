@@ -31,6 +31,11 @@ export default [
       '@typescript-eslint/consistent-type-imports': 'error',
       '@typescript-eslint/unbound-method': 'off',
       'unused-imports/no-unused-imports': 'error',
+      '@typescript-eslint/no-unused-vars': [
+  'error',
+  { argsIgnorePattern: '^_' }
+]
+
     },
   },
 

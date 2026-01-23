@@ -2,12 +2,6 @@ import type { Request, Response } from 'express';
 import { productService } from '../services/productService';
 import { ApiError } from '../errors/apiError';
 
-interface ProductData {
-  productId?: string;
-  categoryId?: string;
-  brandId?: string;
-}
-
 export class ProductController {
   static async getCategories(req: Request, res: Response) {
     const categories = await productService.getCategories();
@@ -15,20 +9,18 @@ export class ProductController {
   }
 
   static async getProductsByCategory(req: Request, res: Response) {
-    const id = (req.body as ProductData).categoryId;
-    const { categoryName } = req.params;
-    console.log(categoryName);
+    const id = req.params.categoryId;
 
     if (!id) {
       throw ApiError.badRequest('Необходимо указать категорию');
     }
 
     const products = await productService.getProductsByCategory(id);
-    return res.json(products);
+    return res.status(200).json(products);
   }
 
   static async getProductsByBrand(req: Request, res: Response) {
-    const id = (req.body as ProductData).brandId;
+    const id = req.params.brandId;
     const { brandName } = req.params;
     console.log(brandName);
 
@@ -37,20 +29,17 @@ export class ProductController {
     }
 
     const products = await productService.getProductsByBrand(id);
-    return res.json(products);
+    return res.status(200).json(products);
   }
 
   static async getProduct(req: Request, res: Response) {
-    const productId = (req.body as ProductData).productId;
-    const { productName, categoryName } = req.params;
-
-    console.log(productName, categoryName);
+    const productId = req.params.productId;
 
     if (!productId) {
       throw ApiError.badRequest('Необходимо указать продукт');
     }
 
     const product = await productService.getProduct(productId);
-    return res.json(product);
+    return res.status(200).json(product);
   }
 }

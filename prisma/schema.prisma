@@ -105,7 +105,7 @@ model Product {
   brand      Brand?    @relation(fields: [brandId], references: [id])
   category   Category? @relation(fields: [categoryId], references: [id])
 
-  info        ProductInfo?
+  characteristics        ProductCharacteristic[]
   images      ProductImage[]
   cartItems   CartItem[]
   orderItems  OrderItem[]
@@ -113,13 +113,13 @@ model Product {
   favorites   Favorite[]
 }
 
-model ProductInfo {
+model ProductCharacteristic {
   id          Int    @id @default(autoincrement())
   title       String
   description String
 
   product   Product @relation(fields: [productId], references: [id])
-  productId Int     @unique
+  productId Int     
 }
 
 model ProductImage {
