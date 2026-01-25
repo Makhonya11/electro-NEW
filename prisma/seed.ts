@@ -3,155 +3,160 @@ import { hashSync } from 'bcrypt';
 
 const prisma = new PrismaClient();
 
+
 async function up() {
-  // ======================
-  // USERS
-  // ======================
-  const user = await prisma.user.create({
-    data: {
-      email: 'user@test.com',
-      password: hashSync('123456', 10),
-      name: 'Test User',
-      phone: '+79990000000',
-      role: UserRole.USER,
-    },
+  console.log('🌱 Seeding database...');
+
+  // --------------------
+  // CATEGORIES
+  // --------------------
+  const smartphones = await prisma.category.create({
+    data: { name: 'Смартфоны' },
   });
 
-  await prisma.user.create({
-    data: {
-      email: 'admin@test.com',
-      password: hashSync('admin123', 10),
-      name: 'Admin',
-      role: UserRole.ADMIN,
-    },
+  const laptops = await prisma.category.create({
+
+    data: { name: 'Ноутбуки' },
   });
 
-  // ======================
-  // BRAND / CATEGORY
-  // ======================
-  const brand = await prisma.brand.create({
+  // --------------------
+  // BRANDS
+  // --------------------
+  const apple = await prisma.brand.create({
+
     data: { name: 'Apple' },
   });
 
-  const category = await prisma.category.create({
-    data: { name: 'Smartphones' },
+  const samsung = await prisma.brand.create({
+
+    data: { name: 'Samsung' },
   });
 
-  await prisma.typeBrand.create({
-    data: {
-      brandId: brand.id,
-      categoryId: category.id,
-    },
+  const asus = await prisma.brand.create({
+    data: { name: 'Asus' },
   });
 
-  // ======================
-  // PRODUCT
-  // ======================
-  const product = await prisma.product.create({
+  // --------------------
+  // BRAND ↔ CATEGORY
+  // --------------------
+  await prisma.typeBrand.createMany({
+    data: [
+      { brandId: apple.id, categoryId: smartphones.id },
+      { brandId: samsung.id, categoryId: smartphones.id },
+      { brandId: apple.id, categoryId: laptops.id },
+      { brandId: asus.id, categoryId: laptops.id },
+    ],
+    skipDuplicates: true,
+  });
+
+  // --------------------
+  // PRODUCTS
+  // --------------------
+  const iphone = await prisma.product.create({
     data: {
-      name: 'iPhone 15',
+      name: 'iPhone 15 Pro',
       price: 120000,
       rating: 5,
       availability: 10,
-      brandId: brand.id,
-      categoryId: category.id,
-      info: {
-        create: {
-          title: 'iPhone 15',
-          description: 'New generation smartphone',
-        },
+      brandId: apple.id,
+      categoryId: smartphones.id,
+      characteristics: {
+        create: [
+          { title: 'Экран', description: '6.1 OLED' },
+          { title: 'Память', description: '256 GB' },
+          { title: 'Процессор', description: 'A17 Pro' },
+        ],
       },
       images: {
-        createMany: {
-          data: [{ url: '/uploads/iphone-main.jpg', isMain: true }, { url: '/uploads/iphone-2.jpg' }],
-        },
+        create: [
+          { url: '/images/iphone15-main.jpg', isMain: true },
+          { url: '/images/iphone15-2.jpg' },
+        ],
       },
     },
   });
 
-  // ======================
-  // CART
-  // ======================
-  await prisma.cart.create({
+  const galaxy = await prisma.product.create({
     data: {
-      userId: user.id,
-      items: {
-        create: {
-          productId: product.id,
-          quantity: 2,
-        },
+      name: 'Samsung Galaxy S24',
+      price: 95000,
+      rating: 4,
+      availability: 7,
+      brandId: samsung.id,
+      categoryId: smartphones.id,
+      characteristics: {
+        create: [
+          { title: 'Экран', description: '6.2 AMOLED' },
+          { title: 'Память', description: '256 GB' },
+          { title: 'Процессор', description: 'Exynos 2400' },
+        ],
+      },
+      images: {
+        create: [
+          { url: '/images/galaxy-s24-main.jpg', isMain: true },
+        ],
       },
     },
   });
 
-  // ======================
-  // FAVORITE
-  // ======================
-  await prisma.favorite.create({
+  const macbook = await prisma.product.create({
     data: {
-      userId: user.id,
-      productId: product.id,
-    },
-  });
-
-  // ======================
-  // ADDRESS
-  // ======================
-  const address = await prisma.userAddress.create({
-    data: {
-      userId: user.id,
-      fullAddress: 'Moscow, Red Square 1',
-      data: { entrance: 1, floor: 3 },
-      latitude: 55.7539,
-      longitude: 37.6208,
-      isDefault: true,
-    },
-  });
-
-  // ======================
-  // ORDER
-  // ======================
-  const order = await prisma.order.create({
-    data: {
-      userId: user.id,
-      status: OrderStatus.PAID,
-      totalAmount: 240000,
-      deliveryPrice: 500,
-      paymentType: 'card',
-      deliveryAddress: address.fullAddress,
-      percipientName: user.name,
-      email: user.email,
-      phone: user.phone!,
-      userAddressId: address.id,
-      items: {
-        create: {
-          productId: product.id,
-          priceAtBuy: product.price,
-          quantity: 2,
-        },
+      name: 'MacBook Pro M3',
+      price: 210000,
+      rating: 5,
+      availability: 5,
+      brandId: apple.id,
+      categoryId: laptops.id,
+      characteristics: {
+        create: [
+          { title: 'Процессор', description: 'Apple M3' },
+          { title: 'Память', description: '16 GB RAM' },
+          { title: 'Экран', description: '14 Retina' },
+        ],
+      },
+      images: {
+        create: [
+          { url: '/images/macbook-m3-main.jpg', isMain: true },
+        ],
       },
     },
   });
 
-  // ======================
-  // PAYMENT
-  // ======================
-  await prisma.payment.create({
+  const asusLaptop = await prisma.product.create({
     data: {
-      userId: user.id,
-      orderId: order.id,
-      provider: PaymentProvider.STRIPE,
-      providerPaymentId: 'pi_test_123',
-      status: PaymentStatus.SUCCEEDED,
-      amount: order.totalAmount,
-      currency: 'RUB',
-      confirmationUrl: 'https://stripe.com/pay',
-      receiptJson: { receipt: true },
+      name: 'Asus ZenBook 14',
+      price: 135000,
+      rating: 4,
+      availability: 8,
+      brandId: asus.id,
+      categoryId: laptops.id,
+      characteristics: {
+        create: [
+          { title: 'Процессор', description: 'Intel Core i7' },
+          { title: 'Память', description: '16 GB RAM' },
+          { title: 'Вес', description: '1.3 кг' },
+        ],
+      },
+      images: {
+        create: [
+          { url: '/images/zenbook-main.jpg', isMain: true },
+        ],
+      },
     },
   });
 
-  console.log('✅ Seed completed');
+  console.log('✅ Seeding finished successfully');
 }
+
+main()
+  .catch((e) => {
+    console.error('❌ Seeding error:', e);
+    process.exit(1);
+  })
+  .finally(async () => {
+    await prisma.$disconnect();
+  });
+
 
 async function down() {
   await prisma.$executeRaw`TRUNCATE TABLE "User" RESTART IDENTITY CASCADE`;

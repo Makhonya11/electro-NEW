@@ -40,7 +40,7 @@ class UserService {
     const refreshTokenHash = hashSync(refreshToken, 10);
     const refreshExp = new Date();
     refreshExp.setDate(refreshExp.getDate() + 30);
-    const sessionToken = jwt.sign({ id: user.id }, process.env.JWT_SECRET!, { expiresIn: '5m' });
+    const sessionToken = jwt.sign({ id: user.id }, process.env.JWT_SECRET!, { expiresIn: '1h' });
 
     user = await prisma.user.update({
       where: {
@@ -78,7 +78,7 @@ class UserService {
     const refreshTokenHash = hashSync(refreshToken, 10);
     const refreshExp = new Date();
     refreshExp.setDate(refreshExp.getDate() + 30);
-    const sessionToken = jwt.sign({ id: user.id }, process.env.JWT_SECRET as string, { expiresIn: '5m' });
+    const sessionToken = jwt.sign({ id: user.id }, process.env.JWT_SECRET as string, { expiresIn: '1h' });
 
     user = await prisma.user.update({
       where: {

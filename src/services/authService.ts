@@ -19,7 +19,7 @@ class AuthService {
       throw ApiError.unauthorized();
     }
 
-    const newAccessToken = jwt.sign({ id: user.id }, process.env.JWT_SECRET as string, { expiresIn: '5m' });
+    const newAccessToken = jwt.sign({ id: user.id }, process.env.JWT_SECRET as string, { expiresIn: '1h' });
     const newRefreshHash = hashSync(refreshToken, 10);
     await prisma.user.update({
       where: {

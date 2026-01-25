@@ -12,7 +12,7 @@ interface RequestWithAuth extends Request {
 export class OrderController {
   static async getOrders(req: RequestWithAuth, res: Response) {
     const userId = req.user?.id;
-    const orders = await orderService.getOrders(userId);
+    const orders = await orderService.getOrders(userId!);
 
     return res.json(orders);
   }
@@ -20,7 +20,7 @@ export class OrderController {
   static async getOrderById(req: RequestWithAuth, res: Response) {
     const userId = req.user?.id;
     const id = +req.params.id;
-    const order = await orderService.getOrderById(id, userId);
+    const order = await orderService.getOrderById(id, userId!);
 
     res.json(order);
   }
@@ -29,14 +29,14 @@ export class OrderController {
     const userId = req.user?.id;
     const token = req.cookies.cartToken;
     const orderData = req.body as Order;
-    const newOrder = await orderService.createOrder(userId, token, orderData);
+    const newOrder = await orderService.createOrder(userId!, token, orderData);
     return res.json(newOrder);
   }
 
   static async cancel(req: RequestWithAuth, res: Response) {
     const userId = req.user?.id;
     const orderId = +req.params.id;
-    const order = await orderService.cancelOrder(orderId, userId);
+    const order = await orderService.cancelOrder(orderId, userId!);
 
     res.json(order);
   }
@@ -47,7 +47,7 @@ export class OrderController {
     const { status } = req.body as Order;
     console.log(status);
 
-    const order = await orderService.updateStatus(orderId, status, userId);
+    const order = await orderService.updateStatus(orderId, status, userId!);
 
     return res.status(200).json(order);
   }
